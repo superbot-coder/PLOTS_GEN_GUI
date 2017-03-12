@@ -9,7 +9,15 @@ uses
   sLabel, sCurrEdit, sCurrencyEdit, sEdit, acPopupCtrls, sSpinEdit,
   Vcl.ComCtrls, sComboBoxes, System.ImageList, Vcl.ImgList, Winapi.ShellAPI,
   sDialogs, Vcl.Menus, sStatusBar, acTitleBar, System.IniFiles, cpu_info_xe,
-  sCheckBox, JvExControls, JvLabel;
+  sCheckBox, JvExControls, JvLabel, Vcl.FileCtrl, acProgressBar, ModFileFormatSize,
+  Error, sListView;
+
+type TExitCode = (EX_COMPLETE, EX_STOPED, EX_CLOCE, EX_FILED, EX_UNKNOWN);
+type TMoveResult = (MR_COMPLETE, MR_STOPED, MR_ERROR, MR_NOTFOUND);
+
+var
+ strExitCode:  Array[TExitCode] of string = ('Complete', 'Stoped', 'Cloce', 'Filed', 'Unknown');
+ strMoveResult: Array[TMoveResult] of string = ('Complete', 'Stoped', 'Error', 'Not found');
 
 type
   TFrmMain = class(TForm)
@@ -19,7 +27,6 @@ type
     sBtnStart: TsButton;
     sSkinManager: TsSkinManager;
     sSkinProvider: TsSkinProvider;
-    smm: TsMemo;
     sEdID: TsEdit;
     sLblID: TsLabel;
     sEdStartNonce: TsEdit;
@@ -45,7 +52,7 @@ type
     sBtnCreateCommand: TsButton;
     PopMenu: TPopupMenu;
     PM_ClearMemo: TMenuItem;
-    PM_LoadFromFile: TMenuItem;
+    PM_ImportFromBatFile: TMenuItem;
     OpenDlg: TOpenDialog;
     sLblFXDonate: TsLabelFX;
     sWebLblDonatBurst: TsWebLabel;
@@ -60,7 +67,21 @@ type
     sLblCurrDiskSpace: TsLabel;
     JvLblGLMemOverflowed: TJvLabel;
     sLblStatDisk: TsLabel;
-    procedure CreateBat;
+    sChBoxMoveFile: TsCheckBox;
+    sLblDestDir: TsLabel;
+    sProgressBar: TsProgressBar;
+    sLblAmount: TsLabel;
+    sLblFileInfo: TsLabel;
+    sLblFileSize: TsLabel;
+    sChBoxReWrite: TsCheckBox;
+    sLblCopySpeed: TsLabel;
+    sDirEditDest: TsDirectoryEdit;
+    sSkinSelector1: TsSkinSelector;
+    sBtnLastPlots: TsButton;
+    sOpenDlgLastNonce: TsOpenDialog;
+    sLV: TsListView;
+    ImgListLV: TImageList;
+    PM_LoadFromCommanLog: TMenuItem;
     procedure sBtnSaveBatClick(Sender: TObject);
     procedure sSpEdNoncesChange(Sender: TObject);
     procedure sSpEdCountChange(Sender: TObject);
@@ -75,7 +96,7 @@ type
     procedure sBtnStopClick(Sender: TObject);
     procedure sCmBoxExSelectDiskKeyPress(Sender: TObject; var Key: Char);
     procedure PM_ClearMemoClick(Sender: TObject);
-    procedure PM_LoadFromFileClick(Sender: TObject);
+    procedure PM_ImportFromBatFileClick(Sender: TObject);
     procedure sWbLabelClick(Sender: TObject);
     procedure SaveSettings;
     procedure LoadeSettings;
@@ -92,7 +113,16 @@ type
     procedure INIUpStarted;
     procedure INIDownStarted;
     procedure sChBoxPathEnableClick(Sender: TObject);
-
+    function CopyFileStrmProgress(FSource, FDest: String): Boolean;
+    function ExtractParam(Param, StrValue: String): string;
+    procedure sSkinManagerAfterChange(Sender: TObject);
+    procedure sBtnLastPlotsClick(Sender: TObject);
+    function GetNextNonceFromName(PlotsName: String): String;
+    procedure AddLVItem(StrValue: String);
+    procedure LVLoadCommandListFromFile(FileName: String);
+    procedure LVCommandLisrFromFileOld(FileName: String);
+    procedure PM_LoadFromCommanLogClick(Sender: TObject);
+    procedure LVCommandListSaveToFile(FileName: String);
 
   private
     { Private declarations }
@@ -111,10 +141,13 @@ var
   MaxCore: SmallInt;
   MemTotalPhys: Int64;
   INI: TIniFile;
+  NonceDirection : Integer;
+  CurrentCommandList: string;
 
 const
   NONCE = 4096;
-  LogFile = 'CreatePlotsLog.txt';
+  CommandList = 'CommandList'; //'CreatePlotsLog.txt';
+  MB_CAPTION = 'PLOTS_GEN_GUI';
 
 implementation
 
@@ -125,7 +158,7 @@ var
   icon: Ticon;
   wd: WORD;
 begin
-  // Добавление ассоциированной иконки 
+  // Add associated Icon
   Result := -1;
   try
     Icon := TIcon.Create;
@@ -143,6 +176,17 @@ begin
     Icon.Free;
   end;
 
+end;
+
+procedure TFrmMain.AddLVItem(StrValue: String);
+var NewItem: TListItem;
+begin
+  NewItem         := sLV.Items.Add;
+  NewItem.Caption := StrValue;
+  NewItem.Checked := true;
+  NewItem.ImageIndex := 0;
+  NewItem.SubItems.Add('');
+  NewItem.SubItems.Add('');
 end;
 
 procedure TFrmMain.CheckFreeSpace;
@@ -179,8 +223,6 @@ begin
        end;
      end;
 
-
-
 end;
 
 function TFrmMain.ConvertValueMem: string;
@@ -188,46 +230,81 @@ begin
   Result := StringReplace(FloatToStr(sSpEdMem.Value * 0.001), ',', '.', []);
 end;
 
-procedure TFrmMain.CreateBat;
-var i: SmallInt;
-    s_temp, path: String;
-    sn: Integer;
+function TFrmMain.CopyFileStrmProgress(FSource, FDest: String): Boolean;
+var
+  FStrmSource : TFileStream;
+  FStrmDest   : TFileStream;
+  ByteRead    : integer;
+  FileSize    : Int64;
+  PBuffer     : Pointer;
+  BufferSize  : LongWord;
+  ByteAmount  : Int64;
+  Count       : Int64;
+  BeginTime   : Cardinal;
+  BreakeMove  : Boolean;
 begin
-  if (sFNameEdPlotter.Text = '') then
-  begin
-    Exit;
+  Result     := false;
+  FileSize   := 0;
+  ByteAmount := 0;
+  Count      := 1;
+  BeginTime  := GetTickCount;
+  BreakeMove := false;
+
+  FStrmSource := TFileStream.Create(FSource, fmOpenRead);
+  if FStrmSource.Size = 0 then Exit;
+  FileSize  := FStrmSource.Size;
+  sLblFileSize.Caption := 'File Size: ' + FormatFileSize(FileSize);
+  if FileExists(FDest) then
+     FStrmDest := TFileStream.Create(FDest, fmOpenWrite or fmExclusive)
+  else FStrmDest := TFileStream.Create(FDest, fmCreate or fmExclusive);
+
+  BufferSize := 1024 * 1024 * 10; // 1MB
+  GetMem(PBuffer, BufferSize);
+
+  try
+    repeat
+      if TERMINATE_PROCESS then
+      begin
+        BreakeMove := true;
+        Break;
+      end;
+      Application.ProcessMessages;
+      ByteRead := FStrmSource.Read(PBuffer^, BufferSize);
+      Application.ProcessMessages;
+      FStrmDest.Write(PBuffer^, ByteRead);
+      ByteAmount := ByteAmount + ByteRead;
+      if Count > 10 then
+      begin
+        sLblCopySpeed.Caption := 'Speed: ' + FormatFileSize(ByteAmount / ((GetTickCount - BeginTime) / 1000)) + '/s';
+        sLblAmount.Caption    := 'Amount: ' + FormatFileSize(ByteAmount);
+        sProgressBar.Position := Round((ByteAmount * 100) / FileSize);
+        count := 1;
+      end;
+      Inc(Count);
+    until ByteRead < BufferSize;
+
+    sLblCopySpeed.Caption := 'Speed: ' + FormatFileSize(ByteAmount / ((GetTickCount - BeginTime) / 1000)) + '/s';
+    sLblAmount.Caption    := 'Amount: ' + FormatFileSize(ByteAmount);
+    sProgressBar.Position := Round((ByteAmount * 100) / FileSize);
+
+    if Not BreakeMove then Result := true;
+
+  finally
+    FreeMem(PBuffer);
+    FStrmSource.Free;
+    FStrmDest.Free;
   end;
 
+end;
 
-  sn := StrToInt(sEdStartNonce.Text);
-
-  //if smm.Lines.IndexOf('@setlocal') = -1 then smm.Lines.Add('@setlocal');
-  //if smm.Lines.IndexOf('@cd /d %~dp0') = -1  then smm.lines.Add('@cd /d %~dp0 ');
-
-  smm.Lines.Add('@setlocal');
-  smm.lines.Add('@cd /d %~dp0');
-
-  if sChBoxPathEnable.Checked then
-  begin
-     if (sCmBoxExSelectDisk.Text <> '') and (sEdPath.Text <> '') then
-       smm.Lines.Add('mkdir ' + sCmBoxExSelectDisk.Text + sEdPath.Text);
-     path := ' -path ' + sCmBoxExSelectDisk.Text + sEdPath.Text;
-  end;
-
-  for i := 1 to sSpEdCount.Value do
-  begin
-    s_temp := sFNameEdPlotter.Text + ' -id ' + sEdID.Text
-              + ' -sn ' + IntToStr(sn) + ' -n ' +sSpEdNonces.Text
-              + ' -t ' + sSpEdThreads.Text
-              + path
-              + ' -mem ' + ConvertValueMem + 'G';
-    smm.Lines.Add(s_temp);
-    inc(sn, sSpEdNonces.Value + 1);
-  end;
-
-  sEdStartNonce.Text := IntToStr(sn);
-  SaveSettings;
-
+function TFrmMain.ExtractParam(Param, StrValue: String): string;
+var
+  n: SmallInt;
+begin
+  n := AnsiPos(Param, StrValue);
+  if n = 0 then exit;
+  Result := copy(StrValue, n + Length(Param + ' '), Length(StrValue) - n + Length(Param + ' '));
+  Result := copy(Result, 1 , AnsiPos(' ', Result)-1);
 end;
 
 function TFrmMain.ExecAndWait(AppName, CommandLime, CurrentDir: PChar; CmdShow: integer): Longword;
@@ -280,6 +357,7 @@ var
   MemStatEx: TMemoryStatusEx;
   s: string;
 begin
+
   ScanDrive;
   Constraints.MinHeight := Height;
   Constraints.MinWidth  := Width;
@@ -294,7 +372,7 @@ begin
   JvOverflowed.Left         := sLblPlotsSumGb.Left;
   JvOverflowed.Top          := sLblPlotsSumGb.Top;
 
-  // Хардваре детек
+  // CPU Instructions detect
   if IsCPUIDSuported then
   begin
     if DetectCPUFeature(cpu_SSE) then suport := '  Suport: SSE';
@@ -319,8 +397,7 @@ begin
   MemTotalPhys  := MemStatEx.ullTotalPhys;
 
 
-  sLblGlobalMem.Caption := 'Global Memory: ' +
-                           FormatFloat('#,###" MB "', MemTotalPhys div 1024 div 1024);
+  sLblGlobalMem.Caption := 'Global Memory: ' +  FormatFileSize(MemTotalPhys);
 
   sSpEdMem.Value := MaxCore * 500;
 
@@ -345,12 +422,14 @@ begin
   sLblStatDisk.Caption := IntToStr(CURRENT_DISK_FREE_SZ) +
                           ' GB free space Disk [' +CurrentDisk + '\]';
 
-
+  if CurrentCommandList = '' then;
+    LVLoadCommandListFromFile(CurrentCommandList);
 end;
 
 procedure TFrmMain.FormShow(Sender: TObject);
 begin
-  smm.SetFocus;
+  //smm.SetFocus;
+  sLV.SetFocus;
 end;
 
 procedure TFrmMain.GetCurrentDiskSpace;
@@ -360,8 +439,33 @@ begin
   CURRENT_DISK_FREE_SZ := (FreeSize div 1024 div 1024 div 1024);
 
   sLblCurrDiskSpace.Caption := 'Current disk  ' + CurrentDisk + '\'
-       + ' total: ' + IntToStr(TotalSize div 1024 div 1024 div 1024) + ' GB'
-       + ' free: ' + IntToStr(FreeSize div 1024 div 1024 div 1024) + ' GB';
+       + ' total: ' + FormatFileSize(TotalSize) + ' free: ' +  FormatFileSize(FreeSize);
+end;
+
+function TFrmMain.GetNextNonceFromName(PlotsName: String): String;
+var
+  st : TStrings;
+  sn : integer;
+  E  : integer;
+  nonces: integer;
+begin
+  Result := '';
+  st := TStringList.Create;
+  try
+    st.Text := StringReplace(ExtractFileName(PlotsName), '_', #13#10, [rfReplaceAll, rfIgnoreCase]);
+    if st.Count <> 4 then Exit;
+
+    val(st.Strings[1], sn, E);
+    if E <> 0 then Exit;
+
+    val(st.Strings[2], nonces, E);
+    if E <> 0 then Exit;
+
+    Result := IntToStr(sn + nonces + 1);
+
+  finally
+    st.Free
+  end;
 end;
 
 procedure TFrmMain.GetSelectDiskSpace;
@@ -371,8 +475,7 @@ begin
   SELECT_DISK_FREE_SZ := (FreeSize div 1024 div 1024 div 1024);
 
   sLblSelectDiskSpace.Caption := 'Selected disk '
-       + ' total: ' + IntToStr(TotalSize div 1024 div 1024 div 1024) + ' GB'
-       + ' free: ' + IntToStr(FreeSize div 1024 div 1024 div 1024) + ' GB';
+       + ' total: ' + FormatFileSize(TotalSize) + ' free: ' + FormatFileSize(FreeSize);
 
   if sChBoxPathEnable.Checked then
     sLblStatDisk.Caption :=  IntToStr(SELECT_DISK_FREE_SZ) +
@@ -414,23 +517,131 @@ begin
     sEdID.Text   := INI.ReadString('SETTINGS', 'id','');
     sEdStartNonce.Text := INI.ReadString('SETTINGS', 'StartNonce', '');
     if INI.ReadBool('SETTINGS','Started', false) then
-      smm.Lines.LoadFromFile(CurrPath + 'CreatePlotsLog.txt');
+    begin
+      // .......
+    end;
+    sDirEditDest.Text      := INI.ReadString('SETTINGS', 'DestDir', '');
+    sChBoxMoveFile.Checked := INI.ReadBool('SETTINGS', 'FileMove', false);
+    sChBoxReWrite.Checked  := INI.ReadBool('SETTINGS', 'ReWrite', false);
+    CurrentCommandList     := INI.ReadString('SETTINGS', CommandList, '');
+    sSkinManager.SkinName  := INI.ReadString('SETTINGS', 'SkinName', 'Material Dark (internal)');
   finally
     INI.Free;
   end;
 
 end;
 
-procedure TFrmMain.PM_ClearMemoClick(Sender: TObject);
+procedure TFrmMain.LVLoadCommandListFromFile(FileName: String);
+var
+  i,j: integer;
+  INI: TIniFile;
+  st: TStrings;
+  s: string;
 begin
-  smm.Lines.Clear;
+  INI := TIniFile.Create(FileName);
+   st := TStringList.Create;
+  try
+    INI.ReadSections(st);
+    if st.Count = 0 then exit;
+    for i:=0 to st.Count - 1 do
+    begin
+      s := INI.ReadString(st.Strings[i], 'Command','');
+      if s <> '' then
+      begin
+        AddLVItem(s);
+        sLV.Items[sLV.Items.Count - 1].Checked     := INI.ReadBool(st.Strings[i], 'Checked', false);
+        j := INI.ReadInteger(st.Strings[i], 'ProcessStatus', -1);
+        if j <> -1 then sLV.Items[sLV.Items.Count - 1].SubItems[0] := strExitCode[TExitCode(j)];
+        sLV.Items[sLV.Items.Count - 1].SubItems[1] := INI.ReadString(st.Strings[i], 'Move', '');
+      end;
+    end;
+  finally
+    INI.Free;
+    st.Free;
+  end;
 end;
 
-procedure TFrmMain.PM_LoadFromFileClick(Sender: TObject);
+procedure TFrmMain.LVCommandListSaveToFile(FileName: String);
+var
+  INI: TIniFile;
+    i: integer;
+    Section: String;
 begin
+  if FileName = '' then Exit;
+  INI := TIniFile.Create(FileName);
+  try
+    for i := 0 to sLV.Items.Count - 1 do
+    begin
+      Section := ExtractParam('-id', sLV.Items[i].Caption) + '_' + ExtractParam('-sn', sLV.Items[i].Caption);
+      INI.WriteString(Section, 'Command', sLV.Items[i].Caption);
+      INI.WriteBool(Section, 'Checked', sLV.Items[i].Checked);
+    end;
+  finally
+    INI.Free;
+  end;
+end;
+
+procedure TFrmMain.LVCommandLisrFromFileOld(FileName: String);
+var i: integer;
+    st: TStrings;
+begin
+  st := TStringList.Create;
+  try
+    st.LoadFromFile(FileName);
+    if st.Count = 0 then exit;
+    for i := 0 to st.Count - 1 do
+    begin
+      AddLVItem(st.Strings[i]);
+    end;
+  finally
+    st.free;
+  end;
+end;
+
+procedure TFrmMain.PM_ClearMemoClick(Sender: TObject);
+begin
+  //smm.Lines.Clear;
+  sLV.Clear;
+end;
+
+procedure TFrmMain.PM_LoadFromCommanLogClick(Sender: TObject);
+var INI : TIniFile;
+begin
+  OpenDlg.Filter := 'Text files *.txt|*.txt';
   OpenDlg.InitialDir := CurrPath;
   if Not OpenDlg.Execute then Exit;
-  smm.Lines.LoadFromFile(OpenDlg.FileName);
+
+  sLV.Clear;
+  LVLoadCommandListFromFile(OpenDlg.FileName);
+  CurrentCommandList := OpenDlg.FileName;
+  INI := TIniFile.Create(CurrPath + 'config.ini');
+  try
+    INI.WriteString('SETTINGS', CommandList, CurrentCommandList);
+  finally
+    INI.free;
+  end;
+
+end;
+
+procedure TFrmMain.PM_ImportFromBatFileClick(Sender: TObject);
+var INI: TIniFile;
+begin
+  OpenDlg.Filter := 'Bat files *.bat|*.bat';
+  OpenDlg.InitialDir := CurrPath;
+  if Not OpenDlg.Execute then Exit;
+  LVCommandLisrFromFileOld(OpenDlg.FileName);
+  //CurrentCommandList := OpenDlg.FileName;
+
+  CurrentCommandList :=  CurrPath + CommandList + '_' + FormatDateTime('dd.mm.yyyy_hh.mm.ss', Date+Time) + '.txt';
+  LVCommandListSaveToFile(CurrentCommandList);
+
+  INI := TIniFile.Create(CurrPath + 'config.ini');
+  try
+    INI.WriteString('SETTINGS', CommandList, CurrentCommandList);
+  finally
+    INI.Free;
+  end;
+
 end;
 
 procedure TFrmMain.SaveSettings;
@@ -443,6 +654,10 @@ begin
     INI.WriteString('SETTINGS', 'id', sEdID.Text);
     INI.WriteString('SETTINGS', 'Path', sEdPath.Text);
     INI.WriteString('SETTINGS', 'StartNonce', sEdStartNonce.Text);
+    INI.WriteString('SETTINGS', 'DestDir', sDirEditDest.Text);
+    INI.WriteBool('SETTINGS', 'FileMove', sChBoxMoveFile.Checked);
+    INI.WriteBool('SETTINGS', 'ReWrite', sChBoxReWrite.Checked);
+    INI.WriteString('SETTINGS', CommandList, CurrentCommandList);
   finally
     INI.Free;
   end;
@@ -450,64 +665,279 @@ begin
 end;
 
 procedure TFrmMain.sBtnSaveBatClick(Sender: TObject);
+var st: TStrings;
+    i : integer;
 begin
-  if Not sSaveDlg.Execute then Exit;
-  smm.Lines.SaveToFile(sSaveDlg.FileName);
-end;
-
-procedure TFrmMain.sBtnCreateCommandClick(Sender: TObject);
-begin
-  CreateBat;
-end;
-
-procedure TFrmMain.sBtnStartClick(Sender: TObject);
-var i: SmallInt;
-    s_temp: String;
-    sn: Integer;
-begin
-
-  if (sFNameEdPlotter.Text = '') then
+  if sLV.Items.Count = 0 then
   begin
+    MessageBox(Handle, PChar('There are no lines'), PChar(MB_CAPTION), MB_ICONWARNING);
     Exit;
   end;
 
-  sBtnStart.Enabled         := false;
-  sBtnCreateCommand.Enabled := true;
-  PM_ClearMemo.Enabled      := false;
-  PM_LoadFromFile.Enabled   := false;
+  if Not sSaveDlg.Execute then Exit;
+  st := TStringList.Create;
+
+  st.Add('@setlocal');
+  st.Add('@cd /d %~dp0');
+  if (sCmBoxExSelectDisk.Text <> '') and (sEdPath.Text <> '') then
+    st.Add('mkdir ' + sCmBoxExSelectDisk.Text + sEdPath.Text);
+
+  try
+    for i := 0 to sLV.Items.Count - 1 do
+    begin
+      st.Add(sLV.Items[i].Caption);
+    end;
+    st.SaveToFile(sSaveDlg.FileName);
+  finally
+    st.Free;
+  end;
+
+end;
+
+procedure TFrmMain.sBtnCreateCommandClick(Sender: TObject);
+var i: SmallInt;
+    s_temp, path: String;
+    sn: Integer;
+    INI: TIniFile;
+begin
+  if (sFNameEdPlotter.Text = '') then
+  begin
+    MessageBox(Handle, PChar('Not selected plotter'), PChar('PLOTS_GEN_GUI'), MB_ICONWARNING);
+    Exit;
+  end;
+
+  sn := StrToInt(sEdStartNonce.Text);
+
+  if sChBoxPathEnable.Checked then path := ' -path ' + sCmBoxExSelectDisk.Text + sEdPath.Text;
+
+  for i := 1 to sSpEdCount.Value do
+  begin
+    s_temp := sFNameEdPlotter.Text + ' -id ' + sEdID.Text
+              + ' -sn ' + IntToStr(sn) + ' -n ' +sSpEdNonces.Text
+              + ' -t ' + sSpEdThreads.Text
+              + path
+              + ' -mem ' + ConvertValueMem + 'G';
+    AddLVItem(s_temp);
+    inc(sn, sSpEdNonces.Value + 1);
+  end;
+
+  sEdStartNonce.Text := IntToStr(sn);
+
+  CurrentCommandList :=  CurrPath + CommandList + '_' + FormatDateTime('dd.mm.yyyy_hh.mm.ss', Date+Time) + '.txt';
+  LVCommandListSaveToFile(CurrentCommandList);
+  SaveSettings;
+
+end;
+
+procedure TFrmMain.sBtnLastPlotsClick(Sender: TObject);
+var
+  NextNonce: String;
+begin
+  if Not sOpenDlgLastNonce.Execute then Exit;
+  NextNonce := GetNextNonceFromName(sOpenDlgLastNonce.FileName);
+  if NextNonce = '' then Exit;
+  sEdStartNonce.Text := NextNonce;
+
+end;
+
+procedure TFrmMain.sBtnStartClick(Sender: TObject);
+var
+    //s_temp: String;
+    SR: TSearchRec;
+    FindDir: String;
+    SourceDir: String;
+    INI: TIniFile;
+    i, j: integer;
+    FindPlot: Boolean;
+    ProcExitCode: Cardinal;
+    Plotter : String;
+    SectionName: String;
+    MoveResult: TMoveResult;
+
+begin
+
+  if sLV.Items.Count = 0 then Exit;
+
+  INI := TIniFile.Create(CurrentCommandList);
+
+  // Save list command to log
+  {
+  for i := 0 to sLv.Items.Count - 1 do
+    SectionName := ExtractParam('-id', AnsiLowerCase(sLV.Items[i].Caption))
+                   + '_' + ExtractParam('-sn', AnsiLowerCase(sLV.Items[i].Caption));
+
+    INI.WriteString(SectionName, 'command', sLV.Items[i].Caption);
+    INI.WriteBool(SectionName, 'Checked', sLV.Items[i].Checked);
+  end;   }
+
+  sLV.HideSelection            := False;
+  sBtnStart.Enabled            := false;
+  sBtnCreateCommand.Enabled    := true;
+  PM_ClearMemo.Enabled         := false;
+  PM_ImportFromBatFile.Enabled := false;
   INIUpStarted;
 
-  TERMINATE_PROCESS := false;
+  try
 
-  for i := 0 to smm.Lines.Count - 1 do
-  begin
+    TERMINATE_PROCESS := false;
 
-    Application.ProcessMessages;
-    if   TERMINATE_PROCESS then Break;
-    if Pos(':: passed:' ,smm.Lines[i]) <> 0 then Continue;
-
-    // detect XPlotter
-    s_temp := LowerCase(smm.Lines[i]);
-
-    if (Pos('xplotter_sse.exe', s_temp) <> 0) or (Pos('xplotter_avx.exe', s_temp) <> 0) then
+    for i := 0 to sLV.Items.Count - 1 do
     begin
-      s_temp := copy(s_temp, 1, Pos('.exe',s_temp) + pred(length('.exe')));
-      ExecAndWait(nil, PChar(smm.Lines[i]), PChar(ExtractFileDir(s_temp)), SW_NORMAL);
-    end
-      else
-    begin
-      ExecAndWait(nil, PChar(ComSpec + ' /C ' + '"' + smm.Lines[i] + '"'), Nil, SW_NORMAL);
+      Application.ProcessMessages;
+      if TERMINATE_PROCESS then Break;
+      if Not sLV.Items[i].Checked then Continue;
+      for  j := 0 to sLV.Items.Count - 1 do sLV.Items[j].Selected := false;
+      sLV.SetFocus;
+      sLV.SelectItem(i);
+
+      SectionName := ExtractParam('-id', AnsiLowerCase(sLV.Items[i].Caption))
+                     + '_' + ExtractParam('-sn', AnsiLowerCase(sLV.Items[i].Caption));
+
+      // detect XPlotter
+      Plotter := LowerCase(sLV.Items[i].Caption);
+
+      //*******  Create Process *******
+      if (Pos('xplotter_sse.exe', Plotter) <> 0) or (Pos('xplotter_avx.exe', Plotter) <> 0) then
+      begin
+        Plotter := copy(Plotter, 1, Pos('.exe', Plotter) + pred(length('.exe')));
+        sLV.Items[i].SubItems[0] := 'Create';
+        ProcExitCode := ExecAndWait(nil, PChar(sLV.Items[i].Caption), PChar(ExtractFileDir(Plotter)), SW_NORMAL);
+      end
+       else
+      begin
+        sLV.Items[i].SubItems[0] := 'Create';
+        ProcExitCode := ExecAndWait(nil, PChar(ComSpec + ' /C ' + '"' + sLV.Items[i].Caption + '"'), Nil, SW_NORMAL);
+      end;
+
+      // Processing EXIT CODE
+      case ProcExitCode of
+        STATUS_WAIT_0:
+          begin
+            if TERMINATE_PROCESS then
+            begin
+              sLV.Items[i].SubItems[0] := strExitCode[TExitCode(EX_STOPED)];  //'Stoped';
+              INI.WriteInteger(SectionName, 'ProcessStatus', integer(TExitCode(EX_STOPED)));
+            end
+            else
+            begin
+              sLV.Items[i].SubItems[0] := strExitCode[TExitCode(EX_COMPLETE)];
+              //if Not TERMINATE_PROCESS then
+              sLV.Items[i].Checked := false;
+              INI.WriteBool(SectionName, 'checked', false);
+              INI.WriteInteger(SectionName, 'ProcessStatus', integer(TExitCode(EX_COMPLETE)));
+            end;
+          end;
+        STATUS_CONTROL_C_EXIT:
+          begin
+            sLV.Items[i].SubItems[0] := strExitCode[TExitCode(EX_CLOCE)];
+            sLv.Items[i].Checked     := False;
+            INI.WriteBool(SectionName, 'checked', false);
+            INI.WriteInteger(SectionName, 'ProcessStatus', integer(TExitCode(EX_CLOCE)));
+          end;
+        WAIT_FAILED:
+          begin
+            sLV.Items[i].SubItems[0] := strExitCode[TExitCode(EX_FILED)];
+            sLV.Items[i].Checked     := false;
+            INI.WriteBool(SectionName, 'checked', false);
+            INI.WriteInteger(SectionName, 'ProcessStatus', integer(TExitCode(EX_FILED)));
+            Break;
+          end;
+       else
+         begin
+           sLV.Items[i].SubItems[0] := strExitCode[TExitCode(EX_UNKNOWN)];
+           sLV.Items[i].Checked     := false;
+           INI.WriteBool(SectionName, 'checked', false);
+           INI.WriteInteger(SectionName, 'ProcessStatus', integer(TExitCode(EX_UNKNOWN)));
+         end;
+      end;
+
+      // *************** Move created file *****************
+      if sChBoxMoveFile.Checked and (sDirEditDest.Text <> '')
+         and (ProcExitCode = STATUS_WAIT_0) and (Not TERMINATE_PROCESS) then
+      begin
+
+        FindPlot  := false;
+        SourceDir := ExtractParam('-path', sLV.Items[i].Caption);
+        if SourceDir = '' then SourceDir := ExtractFileDir(Plotter);
+        SourceDir := IncludeTrailingPathDelimiter(SourceDir);
+
+        if FindFirst(SourceDir + '*.*', faAnyFile, SR) = 0 then
+        Repeat
+          Application.ProcessMessages;
+          if TERMINATE_PROCESS then
+          begin
+            MoveResult := MR_STOPED;
+            Break;
+          end;
+          if ((SR.Attr and faDirectory) <> 0) or (SR.Name = '.') or (SR.Name = '..') then Continue;
+
+          if (AnsiPos(SectionName, SR.Name) <> 0) then
+          begin
+            FindPlot := true;
+            sLblFileInfo.Caption := 'File to move: ' + SR.Name;
+
+            if FileExists(sDirEditDest.Text + '\' + SR.Name) and (sChBoxReWrite.Checked = false) then
+              Continue;
+
+            if ExtractFileDrive(SourceDir) = ExtractFileDrive(sDirEditDest.Text) then
+            begin
+              if MoveFile(PChar(SourceDir + SR.Name), PChar(sDirEditDest.Text + '\' + SR.Name)) then
+                MoveResult := MR_COMPLETE
+              else
+                MoveResult := MR_ERROR;
+            end
+              else
+            begin
+              try
+                if CopyFileStrmProgress(SourceDir + SR.Name,
+                              sDirEditDest.Text + '\' + SR.Name) then
+                begin
+                  Application.ProcessMessages;
+                    DeleteFile(SourceDir + SR.Name);
+                  MoveResult := MR_COMPLETE;
+                end
+                 else
+                begin
+                  if FileExists(sDirEditDest.Text + '\' + SR.Name) then
+                    DeleteFile(sDirEditDest.Text + '\' + SR.Name);
+                   if TERMINATE_PROCESS then MoveResult := MR_STOPED;
+                end;
+
+              except
+                MoveResult := MR_ERROR;
+                ShowMessage(Error.SystemErrorMessage(GetLastError));
+              end;
+            end;
+
+            sLblFileInfo.Caption  := 'File to move: ';
+            sLblAmount.Caption    := 'Amount: 0,00 %';
+            sLblFileSize.Caption  := 'File Size: 0 B';
+            sLblCopySpeed.Caption := 'Speed: 0 Mb/s';
+            sProgressBar.Position := 0;
+            Break;
+
+          end;
+
+        until (FindNext(SR) <> 0);
+        FindClose(SR);
+        if (NOT FindPlot) and (NOT TERMINATE_PROCESS) then MoveResult := MR_NOTFOUND;
+
+        sLV.Items[i].SubItems[1] := strMoveResult[MoveResult];
+        INI.WriteString(SectionName, 'Move', strMoveResult[MoveResult]);
+
+      end;
+
     end;
 
-    if Not TERMINATE_PROCESS then smm.Lines[i] := ':: passed: ' + smm.Lines[i];
-    smm.Lines.SaveToFile(CurrPath + 'CreatePlotsLog.txt');
+  finally
+    INI.Free;
   end;
 
   INIDownStarted;
-  sBtnStart.Enabled         := true;
-  sBtnCreateCommand.Enabled := true;
-  PM_ClearMemo.Enabled      := true;
-  PM_LoadFromFile.Enabled   := true;
+  sBtnStart.Enabled            := true;
+  sBtnCreateCommand.Enabled    := true;
+  PM_ClearMemo.Enabled         := true;
+  PM_ImportFromBatFile.Enabled := true;
 end;
 
 procedure TFrmMain.sBtnStopClick(Sender: TObject);
@@ -538,11 +968,11 @@ begin
          sCmBoxExSelectDisk.ItemsEx[index].ImageIndex := AddAssociatedIcon(sh+':\');
        end;
 
-      DRIVE_REMOTE:
-       begin
-         index := sCmBoxExSelectDisk.Items.Add(sh+':\');
-         sCmBoxExSelectDisk.ItemsEx[index].ImageIndex := AddAssociatedIcon(sh+':');
-       end;
+      //DRIVE_REMOTE:
+      // begin
+      //   index := sCmBoxExSelectDisk.Items.Add(sh+':\');
+      //   sCmBoxExSelectDisk.ItemsEx[index].ImageIndex := AddAssociatedIcon(sh+':\');
+      // end;
 
       DRIVE_RAMDISK:
        begin
@@ -599,6 +1029,18 @@ begin
   d_char := ['0'..'9',#8];
   if not (key in d_char) then Key := #0;
 
+end;
+
+procedure TFrmMain.sSkinManagerAfterChange(Sender: TObject);
+var
+  INI: TIniFile;
+begin
+  INI := TIniFile.Create(CurrPath + 'config.ini');
+  try
+    INI.WriteString('SETTINGS', 'SkinName', sSkinManager.SkinName);
+  finally
+    INI.Free;
+  end;
 end;
 
 procedure TFrmMain.sSkinProviderTitleButtons0MouseDown(Sender: TObject;
@@ -670,6 +1112,15 @@ end;
 
 procedure TFrmMain.sSpEdNoncesChange(Sender: TObject);
 begin
+
+ if sSpEdNonces.Value = NONCE then
+ begin
+   if NonceDirection < NONCE then
+      sSpEdNonces.Value := NONCE * 2
+   else sSpEdNonces.Value := 0;
+ end;
+ NonceDirection := sSpEdNonces.Value;
+
  if sSpEdNonces.Value < 0 then sSpEdNonces.Value := 0;
  if sSpEdNonces.Value = 0 then
  begin
