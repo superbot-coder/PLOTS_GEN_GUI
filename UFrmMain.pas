@@ -110,8 +110,6 @@ type
     procedure CheckFreeSpace;
     procedure sEditKeyPress(Sender: TObject; var Key: Char);
     procedure sEditChange(Sender: TObject);
-    procedure INIUpStarted;
-    procedure INIDownStarted;
     procedure sChBoxPathEnableClick(Sender: TObject);
     function CopyFileStrmProgress(FSource, FDest: String): Boolean;
     function ExtractParam(Param, StrValue: String): string;
@@ -483,26 +481,6 @@ begin
 
 end;
 
-procedure TFrmMain.INIDownStarted;
-begin
-  INI := TIniFile.Create(CurrPath + 'config.ini');
-  try
-    INI.WriteBool('SETTINGS', 'Started', false);
-  finally
-    INI.Free;
-  end;
-end;
-
-procedure TFrmMain.INIUpStarted;
-begin
-  INI := TIniFile.Create(CurrPath + 'config.ini');
-  try
-    INI.WriteBool('SETTINGS','Started',true);
-  finally
-    INI.Free;
-  end;
-end;
-
 procedure TFrmMain.LoadeSettings;
 Var INI : TIniFile;
       s : string;
@@ -772,10 +750,9 @@ begin
 
   sLV.HideSelection            := False;
   sBtnStart.Enabled            := false;
-  sBtnCreateCommand.Enabled    := true;
+  sBtnCreateCommand.Enabled    := false;
   PM_ClearMemo.Enabled         := false;
   PM_ImportFromBatFile.Enabled := false;
-  INIUpStarted;
 
   try
 
@@ -933,7 +910,6 @@ begin
     INI.Free;
   end;
 
-  INIDownStarted;
   sBtnStart.Enabled            := true;
   sBtnCreateCommand.Enabled    := true;
   PM_ClearMemo.Enabled         := true;
@@ -943,7 +919,6 @@ end;
 procedure TFrmMain.sBtnStopClick(Sender: TObject);
 begin
   TERMINATE_PROCESS := true;
-  INIDownStarted;
 end;
 
 procedure TFrmMain.ScanDrive;
