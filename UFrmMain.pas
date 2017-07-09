@@ -10,7 +10,7 @@ uses
   Vcl.ComCtrls, sComboBoxes, System.ImageList, Vcl.ImgList, Winapi.ShellAPI,
   sDialogs, Vcl.Menus, sStatusBar, acTitleBar, System.IniFiles, cpu_info_xe,
   sCheckBox, JvExControls, JvLabel, Vcl.FileCtrl, acProgressBar, ModFileFormatSize,
-  Error, sListView;
+  Error, sListView, GetVer;
 
 type TExitCode = (EX_COMPLETE, EX_STOPED, EX_CLOCE, EX_FILED, EX_UNKNOWN);
 type TMoveResult = (MR_COMPLETE, MR_STOPED, MR_ERROR, MR_NOTFOUND);
@@ -422,6 +422,9 @@ begin
 
   if CurrentCommandList = '' then;
     LVLoadCommandListFromFile(CurrentCommandList);
+
+  Caption := Caption + '  v. ' + Get_vertionInfo(Application.ExeName, True);
+
 end;
 
 procedure TFrmMain.FormShow(Sender: TObject);
@@ -753,6 +756,7 @@ begin
   sBtnCreateCommand.Enabled    := false;
   PM_ClearMemo.Enabled         := false;
   PM_ImportFromBatFile.Enabled := false;
+  PM_LoadFromCommanLog.Enabled := false;
 
   try
 
@@ -914,6 +918,7 @@ begin
   sBtnCreateCommand.Enabled    := true;
   PM_ClearMemo.Enabled         := true;
   PM_ImportFromBatFile.Enabled := true;
+  PM_LoadFromCommanLog.Enabled := true;
 end;
 
 procedure TFrmMain.sBtnStopClick(Sender: TObject);
