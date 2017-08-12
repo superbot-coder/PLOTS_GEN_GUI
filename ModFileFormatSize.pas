@@ -14,7 +14,10 @@ var
   SR : TSearchRec;
 begin
   if FindFirst(FileName, faAnyFile, SR) = 0 then
-    Result := FormatFileSize(SR.Size)
+  begin
+    Result := FormatFileSize(SR.Size);
+  end;
+  SysUtils.FindClose(SR);
 end;
 
 function FormatFileSize(Size: Extended): string;

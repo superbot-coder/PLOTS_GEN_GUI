@@ -6,14 +6,15 @@ interface
 USES Winapi.Windows, System.SysUtils, System.Win.Registry, Vcl.Dialogs;
 
 Type
-  TCPUInstruction = (cpu_MMX, cpu_SSE, cpu_SSE2, cpu_SSE3, cpu_SSSE3,
-                     cpu_SSE_4_1, cpu_SSE_4_2, cpu_AVX, cpu_AVX2, cpu_AES);
+  TCPUInstruction = (cpu_UNKNOWN, cpu_MMX, cpu_SSE, cpu_SSE2, cpu_SSE3, cpu_SSSE3,
+                     cpu_SSE_4_1, cpu_SSE_4_2, cpu_AVX, cpu_AVX2, cpu_AVX512, cpu_AES);
 
 Type TRegisterName = (EBX, ECX, EDX);
 
 const
   strCPUFeature : array [TCPUInstruction] of string =
-   ('MMX', 'SSE', 'SSE2', 'SSE3', 'SSSE3', 'SSE4.1', 'SSE4.2', 'AVX', 'AVX2', 'AES');
+   ('UNKNOWN', 'MMX', 'SSE', 'SSE2', 'SSE3', 'SSSE3', 'SSE4.1', 'SSE4.2',
+     'AVX', 'AVX2','AVX512', 'AES');
 
 
 function GetProcessorNameStr: String;
