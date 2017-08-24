@@ -3,7 +3,7 @@ object FrmMain: TFrmMain
   Top = 0
   Caption = 'PLOTS GEN GUI by SUPERBOT '
   ClientHeight = 620
-  ClientWidth = 1117
+  ClientWidth = 1053
   Color = clMedGray
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -15,7 +15,7 @@ object FrmMain: TFrmMain
   OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
-    1117
+    1053
     620)
   PixelsPerInch = 96
   TextHeight = 16
@@ -107,39 +107,11 @@ object FrmMain: TFrmMain
     Caption = 'Processor:'
   end
   object sLblDestDir: TsLabel
-    Left = 854
+    Left = 835
     Top = 83
     Width = 127
     Height = 16
     Caption = 'Destination  Directory:'
-  end
-  object sLblAmount: TsLabel
-    Left = 610
-    Top = 176
-    Width = 53
-    Height = 16
-    Caption = 'Amount: '
-  end
-  object sLblFileInfo: TsLabel
-    Left = 8
-    Top = 176
-    Width = 74
-    Height = 16
-    Caption = 'File to Move:'
-  end
-  object sLblFileSize: TsLabel
-    Left = 470
-    Top = 176
-    Width = 53
-    Height = 16
-    Caption = 'File Size:'
-  end
-  object sLblCopySpeed: TsLabel
-    Left = 760
-    Top = 174
-    Width = 41
-    Height = 16
-    Caption = 'Speed:'
   end
   object sLblTaskFileName: TsLabel
     Left = 346
@@ -165,10 +137,10 @@ object FrmMain: TFrmMain
   object sProgressBarProcessing: TsProgressBar
     Left = 8
     Top = 144
-    Width = 1101
+    Width = 1037
     Height = 22
     Anchors = [akLeft, akTop, akRight]
-    TabOrder = 12
+    TabOrder = 11
   end
   object sBtnStart: TsButton
     Left = 416
@@ -215,7 +187,7 @@ object FrmMain: TFrmMain
     Visible = False
   end
   object sChBoxMoveFile: TsCheckBox
-    Left = 745
+    Left = 726
     Top = 85
     Width = 83
     Height = 20
@@ -226,28 +198,20 @@ object FrmMain: TFrmMain
     ImgChecked = 0
     ImgUnchecked = 0
   end
-  object sProgressBar: TsProgressBar
-    Left = 8
-    Top = 196
-    Width = 1101
-    Height = 22
-    Anchors = [akLeft, akTop, akRight]
-    TabOrder = 6
-  end
   object sChBoxReWrite: TsCheckBox
-    Left = 745
+    Left = 726
     Top = 111
     Width = 99
     Height = 20
     Caption = 'ReWrite File'
     Checked = True
     State = cbChecked
-    TabOrder = 7
+    TabOrder = 6
     ImgChecked = 0
     ImgUnchecked = 0
   end
   object sDirEditDest: TsDirectoryEdit
-    Left = 854
+    Left = 835
     Top = 104
     Width = 189
     Height = 25
@@ -260,7 +224,7 @@ object FrmMain: TFrmMain
     Font.Style = []
     MaxLength = 255
     ParentFont = False
-    TabOrder = 8
+    TabOrder = 7
     Text = ''
     CheckOnExit = True
     GlyphMode.Blend = 0
@@ -268,7 +232,7 @@ object FrmMain: TFrmMain
     Root = 'rfMyComputer'
   end
   object sSkinSelector1: TsSkinSelector
-    Left = 928
+    Left = 864
     Top = 8
     Width = 181
     Height = 25
@@ -279,13 +243,13 @@ object FrmMain: TFrmMain
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 9
+    TabOrder = 8
   end
   object sLV: TsListView
-    Left = 8
-    Top = 224
-    Width = 1099
-    Height = 366
+    Left = 10
+    Top = 172
+    Width = 1035
+    Height = 418
     Anchors = [akLeft, akTop, akRight, akBottom]
     Checkboxes = True
     Color = 3682598
@@ -327,7 +291,7 @@ object FrmMain: TFrmMain
     ParentFont = False
     PopupMenu = PopMenu
     SmallImages = ImgListLV
-    TabOrder = 10
+    TabOrder = 9
     ViewStyle = vsReport
   end
   object sBtnAddPlots: TsButton
@@ -336,16 +300,16 @@ object FrmMain: TFrmMain
     Width = 130
     Height = 31
     Caption = 'ADD PLOTS'
-    TabOrder = 11
+    TabOrder = 10
     OnClick = sBtnAddPlotsClick
   end
   object sChBoxAutorun: TsCheckBox
-    Left = 745
+    Left = 726
     Top = 59
     Width = 198
     Height = 20
     Caption = 'Windows AutoRun / Autostart'
-    TabOrder = 13
+    TabOrder = 12
     OnClick = sChBoxAutorunClick
     ImgChecked = 0
     ImgUnchecked = 0
@@ -39072,7 +39036,7 @@ object FrmMain: TFrmMain
   object sSaveDlg: TsSaveDialog
     FileName = 'NewCreatePlots.bat'
     Left = 236
-    Top = 392
+    Top = 384
   end
   object PopMenu: TPopupMenu
     Left = 308
@@ -39113,7 +39077,7 @@ object FrmMain: TFrmMain
     Left = 648
     Top = 388
     Bitmap = {
-      494C010101003000700010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C010101003000880010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       000000000000F1F5F600EBF2F400D3E3E700E4ECEE00EFF3F500F6F9F9000000
@@ -39251,5 +39215,11 @@ object FrmMain: TFrmMain
       000100000000000080010000000000008003000000000000C007000000000000
       E00F000000000000F83F00000000000000000000000000000000000000000000
       000000000000}
+  end
+  object TimerLoadTaskList: TTimer
+    Interval = 1500
+    OnTimer = TimerLoadTaskListTimer
+    Left = 720
+    Top = 392
   end
 end

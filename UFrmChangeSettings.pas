@@ -6,7 +6,8 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, sRadioButton,
   Vcl.ComCtrls, sComboBoxes, sCheckBox, sLabel, sEdit, sSpinEdit, sButton,
-  sSkinProvider, ModFileFormatSize;
+  sSkinProvider, ModFileFormatSize, Vcl.Mask, sMaskEdit, sCustomComboEdit,
+  sToolEdit;
 
 type
   TFrmChengeSettings = class(TForm)
@@ -18,11 +19,11 @@ type
     sLblThreads: TsLabel;
     sChBoxPathEnable: TsCheckBox;
     sLblPath: TsLabel;
-    sEdPath: TsEdit;
     sRdBtnSelectItems: TsRadioButton;
     sRdBtnAllItems: TsRadioButton;
     sSkinProvider: TsSkinProvider;
     sLblGlobalMem: TsLabel;
+    sDirEdPath: TsDirectoryEdit;
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure sSpEdThreadsChange(Sender: TObject);
     procedure sSpEdMemChange(Sender: TObject);
@@ -40,13 +41,14 @@ var
 
 implementation
 
-USES UFrmMain, UFrmCreateTask;
+USES UFrmMain, UFrmCreateTask, ResourceLang;
 
 {$R *.dfm}
 
 procedure TFrmChengeSettings.FormCreate(Sender: TObject);
 begin
   sLblGlobalMem.Caption := 'Global Memory: ' +  FormatFileSize(MemTotalPhys);
+  Caption := MB_CAPTION;
 end;
 
 procedure TFrmChengeSettings.FormKeyDown(Sender: TObject; var Key: Word;
@@ -57,6 +59,13 @@ end;
 
 procedure TFrmChengeSettings.sBtnApplyClick(Sender: TObject);
 begin
+  if sChBoxPathEnable.Enabled then
+    if sDirEdPath.Text = '' then
+    begin
+      MessageBox(Handle, PChar(msg_FrmChengeSettings_01), PChar(MB_CAPTION), MB_ICONWARNING);
+      Exit;
+    end;
+
   Apply := true;
   Close;
 end;

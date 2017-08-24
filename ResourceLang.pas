@@ -17,6 +17,19 @@ Var
  msg_FrmMain_AutoRunCloseOk     : String;
  msg_FrmMain_AutoRunCloseBad    : String;
  msg_FrmMain_ClearTaskList      : String;
+ msg_FrmChengeSettings_01       : String;
+
+ // ******************* Labels ***************************
+ lbl_FrmProgresBar_1                 : String;
+ lbl_FrmProgresBar_2                 : String;
+ lbl_FrmProgresBar_3                 : String;
+ lbl_FrmProgresBar_4                 : String;
+ lbl_FrmProgresBar_5                 : String;
+ lbl_FrmProgresBar_6                 : String;
+ lbl_FrmProgressBarMoveFile_Movefile : String;
+ lbl_FrmProgressBarMoveFile_FileSize : String;
+ lbl_FrmProgressBarMoveFile_Amount   : String;
+ lbl_FrmProgressBarMoveFile_Speed    : String;
 
 
 
@@ -36,5 +49,19 @@ initialization
   msg_FrmMain_AutoRunCloseOk     := 'AutoRun and Autostart is cloced successfully';
   msg_FrmMain_AutoRunCloseBad    := 'AutoRun and Autostart is not closed';
   msg_FrmMain_ClearTaskList      := 'you really are going to clean TaskLis? if yes click YES if is not present on press NO';
+  msg_FrmChengeSettings_01       := 'Paremet "-Path" is empty';
+
+  lbl_FrmProgresBar_1            := 'Addition of records:';
+  lbl_FrmProgresBar_2            := 'Saving records:';
+  lbl_FrmProgresBar_3            := 'Loading records:';
+  lbl_FrmProgresBar_4            := 'Deleting records:';
+  lbl_FrmProgresBar_5            := 'Chenging records:';
+  lbl_FrmProgresBar_6            := 'passed time:';
+
+  lbl_FrmProgressBarMoveFile_Movefile := 'File to move: ';
+  lbl_FrmProgressBarMoveFile_FileSize := 'File Size: ';
+  lbl_FrmProgressBarMoveFile_Amount   := 'Amount: ';
+  lbl_FrmProgressBarMoveFile_Speed    := 'Speed: ';
+
 
 end.

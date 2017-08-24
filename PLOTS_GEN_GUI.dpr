@@ -7,7 +7,9 @@ uses
   UFrmChangeSettings in 'UFrmChangeSettings.pas' {FrmChengeSettings},
   UFrmSelPlotter in 'UFrmSelPlotter.pas' {FrmSelPlotter},
   UFrmSplitTask in 'UFrmSplitTask.pas' {FrmSplitTask},
-  ResourceLang in 'ResourceLang.pas';
+  ResourceLang in 'ResourceLang.pas',
+  UFrmProgressBar in 'UFrmProgressBar.pas' {FrmProgressBar},
+  UFrmProgressBarMoveFile in 'UFrmProgressBarMoveFile.pas' {FrmProgressBarMoveFile};
 
 {$R *.res}
 
@@ -19,5 +21,7 @@ begin
   Application.CreateForm(TFrmChengeSettings, FrmChengeSettings);
   Application.CreateForm(TFrmSelPlotter, FrmSelPlotter);
   Application.CreateForm(TFrmSplitTask, FrmSplitTask);
+  Application.CreateForm(TFrmProgressBar, FrmProgressBar);
+  Application.CreateForm(TFrmProgressBarMoveFile, FrmProgressBarMoveFile);
   Application.Run;
 end.

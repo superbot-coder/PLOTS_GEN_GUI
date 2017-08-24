@@ -45,6 +45,7 @@ type
     ImageListDrive: TImageList;
     sEdNewNameTask: TsEdit;
     sLblNameTask: TsLabel;
+    sLblMaxCount: TsLabel;
     procedure sBtnAPPLYClick(Sender: TObject);
     procedure CheckFreeSpace;
     function ConvertValueMem: string;
@@ -236,12 +237,19 @@ end;
 
 procedure TFrmCreateTask.sBtnAPPLYClick(Sender: TObject);
 begin
+
   if sEdNewNameTask.Text  = '' then
   begin
     MessageBox(Handle, Pchar(msg_FrmCreateTask_sBtnApply_01),
                PChar(MB_CAPTION), MB_ICONWARNING);
     Exit;
   end;
+
+  sEdID.Text := Trim(sEdID.Text);
+  sEdStartNonce.Text := Trim(sEdStartNonce.Text);
+
+  sSpEdCountChange(Nil);
+  sSpEdNoncesChange(Nil);
 
   // Check ID
   if Not CheckInsertChar(Trim(sEdID.Text)) then
@@ -283,25 +291,25 @@ begin
 
       DRIVE_FIXED:
        begin
-         index := sCmBoxExSelectDisk.Items.Add(Drive+':\');
+         index := sCmBoxExSelectDisk.Items.Add(Drive + ':\');
          sCmBoxExSelectDisk.ItemsEx[index].ImageIndex := FrmMain.AddAssociatedIcon(Drive+':\', ImageListDrive);
        end;
 
       DRIVE_REMOVABLE:
        begin
-         index := sCmBoxExSelectDisk.Items.Add(Drive+':\');
+         index := sCmBoxExSelectDisk.Items.Add(Drive + ':\');
          sCmBoxExSelectDisk.ItemsEx[index].ImageIndex := FrmMain.AddAssociatedIcon(Drive+':\', ImageListDrive);
        end;
 
-      //DRIVE_REMOTE:
-      // begin
-      //   index := sCmBoxExSelectDisk.Items.Add(sh+':\');
-      //   sCmBoxExSelectDisk.ItemsEx[index].ImageIndex := AddAssociatedIcon(sh+':\');
-      // end;
+      DRIVE_REMOTE:
+       begin
+         index := sCmBoxExSelectDisk.Items.Add(Drive + ':\');
+         sCmBoxExSelectDisk.ItemsEx[index].ImageIndex := FrmMain.AddAssociatedIcon(Drive+':\', ImageListDrive);
+       end;
 
       DRIVE_RAMDISK:
        begin
-         index := sCmBoxExSelectDisk.Items.Add(Drive+':\');
+         index := sCmBoxExSelectDisk.Items.Add(Drive + ':\');
          sCmBoxExSelectDisk.ItemsEx[index].ImageIndex := FrmMain.AddAssociatedIcon(Drive+':\', ImageListDrive);
        end;
 
