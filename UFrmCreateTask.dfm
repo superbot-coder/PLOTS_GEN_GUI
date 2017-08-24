@@ -173,16 +173,22 @@ object FrmCreateTask: TFrmCreateTask
     Height = 16
     Caption = 'New Task Name:'
   end
+  object sLblMaxCount: TsLabel
+    Left = 360
+    Top = 263
+    Width = 112
+    Height = 16
+    Caption = 'Max Count = 10000'
+  end
   object sBtnAPPLY: TsButton
     Left = 250
-    Top = 313
+    Top = 305
     Width = 250
     Height = 33
     Anchors = [akLeft, akRight, akBottom]
     Caption = 'CREATE TASK'
     TabOrder = 0
     OnClick = sBtnAPPLYClick
-    ExplicitWidth = 305
   end
   object sCmBoxExSelectDisk: TsComboBoxEx
     Left = 92
@@ -261,7 +267,7 @@ object FrmCreateTask: TFrmCreateTask
     Text = '500'
     OnChange = sSpEdMemChange
     Increment = 100
-    MaxValue = 32000
+    MaxValue = 64000
     MinValue = 500
     Value = 500
   end
@@ -280,7 +286,7 @@ object FrmCreateTask: TFrmCreateTask
     TabOrder = 6
     Text = '1'
     OnChange = sSpEdCountChange
-    MaxValue = 1
+    MaxValue = 100000
     MinValue = 1
     Value = 1
   end
@@ -299,7 +305,7 @@ object FrmCreateTask: TFrmCreateTask
     TabOrder = 7
     Text = '2'
     OnChange = sSpEdThreadsChange
-    MaxValue = 40
+    MaxValue = 128
     MinValue = 1
     Value = 2
   end
@@ -346,7 +352,7 @@ object FrmCreateTask: TFrmCreateTask
     Font.Height = -13
     Font.Name = 'Tahoma'
     Font.Style = []
-    MaxLength = 9
+    MaxLength = 12
     ParentFont = False
     TabOrder = 10
     Text = '400000001'

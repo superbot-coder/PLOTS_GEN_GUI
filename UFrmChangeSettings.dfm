@@ -1,9 +1,10 @@
 object FrmChengeSettings: TFrmChengeSettings
   Left = 0
   Top = 0
-  Caption = 'FrmChangeSettings'
-  ClientHeight = 292
-  ClientWidth = 520
+  BorderStyle = bsSingle
+  Caption = 'CHANGE COMMANDLINE'
+  ClientHeight = 302
+  ClientWidth = 530
   Color = clMedGray
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -16,8 +17,8 @@ object FrmChengeSettings: TFrmChengeSettings
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   DesignSize = (
-    520
-    292)
+    530
+    302)
   PixelsPerInch = 96
   TextHeight = 16
   object sLblMemGb: TsLabel
@@ -57,8 +58,8 @@ object FrmChengeSettings: TFrmChengeSettings
   end
   object sBtnApply: TsButton
     Left = 189
-    Top = 249
-    Width = 170
+    Top = 259
+    Width = 180
     Height = 35
     Anchors = [akLeft, akRight, akBottom]
     Caption = 'OK'
@@ -107,26 +108,12 @@ object FrmChengeSettings: TFrmChengeSettings
   object sChBoxPathEnable: TsCheckBox
     Left = 167
     Top = 40
-    Width = 168
+    Width = 175
     Height = 20
-    Caption = 'Enable Parametr "-path"'
+    Caption = 'Enable Parameter "-path"'
     TabOrder = 3
     ImgChecked = 0
     ImgUnchecked = 0
-  end
-  object sEdPath: TsEdit
-    Left = 166
-    Top = 66
-    Width = 193
-    Height = 24
-    Color = 3682598
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = 16772838
-    Font.Height = -13
-    Font.Name = 'Tahoma'
-    Font.Style = []
-    ParentFont = False
-    TabOrder = 4
   end
   object sRdBtnSelectItems: TsRadioButton
     Left = 32
@@ -134,7 +121,7 @@ object FrmChengeSettings: TFrmChengeSettings
     Width = 164
     Height = 22
     Caption = 'Change for select items'
-    TabOrder = 5
+    TabOrder = 4
   end
   object sRdBtnAllItems: TsRadioButton
     Left = 32
@@ -143,8 +130,29 @@ object FrmChengeSettings: TFrmChengeSettings
     Height = 22
     Caption = 'Change for all items'
     Checked = True
-    TabOrder = 6
+    TabOrder = 5
     TabStop = True
+  end
+  object sDirEdPath: TsDirectoryEdit
+    Left = 166
+    Top = 66
+    Width = 193
+    Height = 24
+    AutoSize = False
+    Color = 3682598
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = 16772838
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    MaxLength = 255
+    ParentFont = False
+    TabOrder = 6
+    Text = ''
+    CheckOnExit = True
+    GlyphMode.Blend = 0
+    GlyphMode.Grayed = False
+    Root = 'rfDesktop'
   end
   object sSkinProvider: TsSkinProvider
     SkinData.SkinSection = 'FORM'

@@ -9,7 +9,7 @@ unit Compress;
 
 interface
 
-Uses Classes, Windows, dialogs , SysUtils, ZLib;
+Uses Classes, Windows, SysUtils, ZLib;
 
 Type TResType = MakeIntResource;
 
@@ -139,10 +139,8 @@ begin
     // InMemStrm    := TMemoryStream.Create;
     OutMemStrm   := TMemoryStream.Create;
     CompressStrm := TCompressionStream.Create(TCompressionLevel(Level), OutMemStrm);
-
-    ShowMessage(PChar(InBuffer)^);
+	
     CompressStrm.Write(PChar(InBuffer), szInBuffer);
-
 
     if OutMemStrm.Size = 0 then
      begin
