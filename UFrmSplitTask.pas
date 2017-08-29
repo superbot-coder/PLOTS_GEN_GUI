@@ -84,8 +84,6 @@ begin
     if i <= sale then NewItem.SubItems.Add(IntToStr(Succ(share)))
     else NewItem.SubItems.Add(IntToStr(share));
 
-
-
     NewItem.ImageIndex := 0;
   end;
 end;

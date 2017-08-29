@@ -2,26 +2,28 @@ object FrmMain: TFrmMain
   Left = 0
   Top = 0
   Caption = 'PLOTS GEN GUI by SUPERBOT '
-  ClientHeight = 620
-  ClientWidth = 1053
+  ClientHeight = 615
+  ClientWidth = 1119
   Color = clMedGray
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -13
   Font.Name = 'Tahoma'
   Font.Style = []
+  Menu = MainMenu
   OldCreateOrder = False
   Position = poScreenCenter
+  OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
-    1053
-    620)
+    1119
+    615)
   PixelsPerInch = 96
   TextHeight = 16
   object sLblFXDonate: TsLabelFX
     Left = 8
-    Top = 596
+    Top = 591
     Width = 61
     Height = 22
     Anchors = [akLeft, akBottom]
@@ -41,7 +43,7 @@ object FrmMain: TFrmMain
   end
   object sWebLblDonatBurst: TsWebLabel
     Left = 74
-    Top = 599
+    Top = 594
     Width = 182
     Height = 16
     Hint = 'Click to copy the address in a clipboard'
@@ -65,7 +67,7 @@ object FrmMain: TFrmMain
   end
   object sLblFXDonateBTC: TsLabelFX
     Left = 266
-    Top = 596
+    Top = 591
     Width = 88
     Height = 22
     Anchors = [akLeft, akBottom]
@@ -77,7 +79,7 @@ object FrmMain: TFrmMain
   end
   object sWbLblBTC: TsWebLabel
     Left = 360
-    Top = 599
+    Top = 594
     Width = 242
     Height = 16
     Hint = 'Click to copy the address in a clipboard'
@@ -99,84 +101,149 @@ object FrmMain: TFrmMain
     HoverFont.Style = []
     ExplicitTop = 427
   end
-  object sLblCPUNameStr: TsLabel
+  object sLblCPU: TsLabel
     Left = 25
-    Top = 11
+    Top = 8
     Width = 61
     Height = 16
     Caption = 'Processor:'
   end
-  object sLblDestDir: TsLabel
-    Left = 835
-    Top = 83
-    Width = 127
-    Height = 16
-    Caption = 'Destination  Directory:'
-  end
   object sLblTaskFileName: TsLabel
-    Left = 346
-    Top = 41
+    Left = 25
+    Top = 30
     Width = 56
     Height = 16
     Caption = 'Task File:'
   end
   object sLblProcessing: TsLabel
-    Left = 8
-    Top = 122
+    Left = 13
+    Top = 164
     Width = 136
     Height = 16
     Caption = 'Processing Information:'
   end
   object sLblTaskName: TsLabel
     Left = 25
-    Top = 41
+    Top = 52
     Width = 73
     Height = 16
     Caption = 'Task Name: '
   end
+  object sLbl_id_lable: TsLabel
+    Left = 25
+    Top = 74
+    Width = 55
+    Height = 16
+    Caption = 'ID wallet:'
+  end
+  object sLbl_id_wallet: TsLabel
+    Left = 138
+    Top = 74
+    Width = 80
+    Height = 16
+    Caption = 'sLbl_id_wallet'
+  end
+  object sLblCPUData: TsLabel
+    Left = 138
+    Top = 8
+    Width = 71
+    Height = 16
+    Caption = 'sLblCPUData'
+  end
+  object sLblTaskNameData: TsLabel
+    Left = 138
+    Top = 52
+    Width = 108
+    Height = 16
+    Caption = 'sLblTaskNameData'
+  end
+  object sLblTaskFileNameData: TsLabel
+    Left = 138
+    Top = 30
+    Width = 128
+    Height = 16
+    Caption = 'sLblTaskFileNameData'
+  end
+  object sLblProcessingData: TsLabel
+    Left = 165
+    Top = 164
+    Width = 109
+    Height = 16
+    Caption = 'sLblProcessingData'
+  end
+  object sLblInstructions: TsLabel
+    Left = 569
+    Top = 8
+    Width = 98
+    Height = 16
+    Caption = 'CPU Instructions:'
+    Visible = False
+  end
+  object sLblInstructionsData: TsLabel
+    Left = 682
+    Top = 8
+    Width = 114
+    Height = 16
+    Caption = 'sLblInstructionsData'
+    Visible = False
+  end
+  object sLblPocVer: TsLabel
+    Left = 25
+    Top = 94
+    Width = 74
+    Height = 16
+    Caption = 'POC version:'
+  end
+  object sLblPocVerData: TsLabel
+    Left = 138
+    Top = 94
+    Width = 88
+    Height = 16
+    Caption = 'sLblPocVerData'
+  end
   object sProgressBarProcessing: TsProgressBar
     Left = 8
-    Top = 144
-    Width = 1037
+    Top = 186
+    Width = 1103
     Height = 22
     Anchors = [akLeft, akTop, akRight]
-    TabOrder = 11
+    TabOrder = 7
   end
   object sBtnStart: TsButton
-    Left = 416
-    Top = 77
-    Width = 130
+    Left = 462
+    Top = 127
+    Width = 140
     Height = 30
+    Action = Act_Start
     Caption = 'START'
     TabOrder = 2
-    OnClick = sBtnStartClick
   end
   object sBtnSaveBat: TsButton
-    Left = 280
-    Top = 77
-    Width = 130
+    Left = 314
+    Top = 127
+    Width = 140
     Height = 30
-    Caption = 'SAVE AS BAT-FILE'
+    Action = Act_ExportToBatFile
+    Caption = 'EXPORT TO BAT-FILE'
     TabOrder = 1
-    OnClick = sBtnSaveBatClick
   end
   object sBtnStop: TsButton
-    Left = 552
-    Top = 77
-    Width = 130
+    Left = 608
+    Top = 127
+    Width = 140
     Height = 30
+    Action = Act_Stop
     Caption = 'STOP'
     TabOrder = 3
-    OnClick = sBtnStopClick
   end
   object sBtnNewTask: TsButton
-    Left = 8
-    Top = 77
-    Width = 130
+    Left = 16
+    Top = 128
+    Width = 140
     Height = 30
+    Action = Act_CreateNewTaskList
     Caption = 'CREATE NEW TASK'
     TabOrder = 0
-    OnClick = sBtnNewTaskClick
   end
   object EdDonation: TEdit
     Left = 25
@@ -186,78 +253,34 @@ object FrmMain: TFrmMain
     TabOrder = 4
     Visible = False
   end
-  object sChBoxMoveFile: TsCheckBox
-    Left = 726
-    Top = 85
-    Width = 83
-    Height = 20
-    Caption = 'Move File'
-    Checked = True
-    State = cbChecked
-    TabOrder = 5
-    ImgChecked = 0
-    ImgUnchecked = 0
-  end
-  object sChBoxReWrite: TsCheckBox
-    Left = 726
-    Top = 111
-    Width = 99
-    Height = 20
-    Caption = 'ReWrite File'
-    Checked = True
-    State = cbChecked
-    TabOrder = 6
-    ImgChecked = 0
-    ImgUnchecked = 0
-  end
-  object sDirEditDest: TsDirectoryEdit
-    Left = 835
-    Top = 104
-    Width = 189
-    Height = 25
-    AutoSize = False
-    Color = 3682598
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = 16772838
-    Font.Height = -13
-    Font.Name = 'Tahoma'
-    Font.Style = []
-    MaxLength = 255
-    ParentFont = False
-    TabOrder = 7
-    Text = ''
-    CheckOnExit = True
-    GlyphMode.Blend = 0
-    GlyphMode.Grayed = False
-    Root = 'rfMyComputer'
-  end
-  object sSkinSelector1: TsSkinSelector
-    Left = 864
-    Top = 8
-    Width = 181
-    Height = 25
-    Anchors = [akTop, akRight]
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = 16772838
-    Font.Height = -13
-    Font.Name = 'Tahoma'
-    Font.Style = []
-    ParentFont = False
-    TabOrder = 8
-  end
   object sLV: TsListView
-    Left = 10
-    Top = 172
-    Width = 1035
-    Height = 418
+    Left = 8
+    Top = 214
+    Width = 1103
+    Height = 371
+    OnEndColumnResize = sLVEndColumnResize
     Anchors = [akLeft, akTop, akRight, akBottom]
     Checkboxes = True
     Color = 3682598
     Columns = <
       item
         AutoSize = True
+        Caption = #8470
+        MaxWidth = 90
+        MinWidth = 20
+      end
+      item
+        AutoSize = True
         Caption = 'Command Line'
-        MinWidth = 200
+        MaxWidth = 600
+        MinWidth = 100
+      end
+      item
+        Alignment = taCenter
+        AutoSize = True
+        Caption = 'Size'
+        MaxWidth = 90
+        MinWidth = 50
       end
       item
         Alignment = taCenter
@@ -277,8 +300,12 @@ object FrmMain: TFrmMain
         Alignment = taCenter
         AutoSize = True
         Caption = 'Move File'
-        MaxWidth = 90
+        MaxWidth = 170
         MinWidth = 50
+      end
+      item
+        Caption = 'int_time'
+        Width = 0
       end>
     Font.Charset = DEFAULT_CHARSET
     Font.Color = 16772838
@@ -291,28 +318,118 @@ object FrmMain: TFrmMain
     ParentFont = False
     PopupMenu = PopMenu
     SmallImages = ImgListLV
-    TabOrder = 9
+    TabOrder = 5
     ViewStyle = vsReport
   end
   object sBtnAddPlots: TsButton
-    Left = 144
-    Top = 77
-    Width = 130
+    Left = 165
+    Top = 127
+    Width = 140
     Height = 31
+    Action = Act_AddPlots
     Caption = 'ADD PLOTS'
-    TabOrder = 10
-    OnClick = sBtnAddPlotsClick
+    TabOrder = 6
   end
-  object sChBoxAutorun: TsCheckBox
-    Left = 726
-    Top = 59
-    Width = 198
-    Height = 20
-    Caption = 'Windows AutoRun / Autostart'
-    TabOrder = 12
-    OnClick = sChBoxAutorunClick
-    ImgChecked = 0
-    ImgUnchecked = 0
+  object mm: TsMemo
+    Left = 8
+    Top = 432
+    Width = 1103
+    Height = 156
+    Align = alCustom
+    Anchors = [akLeft, akRight, akBottom]
+    Color = 3682598
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = 16772838
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    Lines.Strings = (
+      'mm')
+    ParentFont = False
+    ScrollBars = ssVertical
+    TabOrder = 8
+    Visible = False
+    Text = 'mm'
+  end
+  object sGrBoxMove: TsGroupBox
+    Left = 764
+    Top = 53
+    Width = 341
+    Height = 105
+    Caption = 'Move the created file'
+    TabOrder = 9
+    object sLblDestDir: TsLabel
+      Left = 12
+      Top = 50
+      Width = 127
+      Height = 16
+      Caption = 'Destination  Directory:'
+    end
+    object sLblExperemental: TsLabel
+      Left = 232
+      Top = 41
+      Width = 88
+      Height = 16
+      Caption = '(experemental)'
+    end
+    object sDirEditDest: TsDirectoryEdit
+      Left = 12
+      Top = 72
+      Width = 312
+      Height = 25
+      AutoSize = False
+      Color = 3682598
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = 16772838
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      MaxLength = 255
+      ParentFont = False
+      TabOrder = 0
+      Text = ''
+      CheckOnExit = True
+      GlyphMode.Grayed = False
+      GlyphMode.Blend = 0
+      Root = 'rfMyComputer'
+    end
+    object sChBoxReWrite: TsCheckBox
+      Left = 101
+      Top = 24
+      Width = 99
+      Height = 20
+      Caption = 'ReWrite File'
+      Checked = True
+      State = cbChecked
+      TabOrder = 1
+      ImgChecked = 0
+      ImgUnchecked = 0
+    end
+    object sChBoxMoveInTurn: TsCheckBox
+      Left = 206
+      Top = 24
+      Width = 120
+      Height = 20
+      Caption = 'To move in turn'
+      Checked = True
+      State = cbChecked
+      TabOrder = 2
+      ImgChecked = 0
+      ImgUnchecked = 0
+    end
+    object sChBoxMoveFile: TsCheckBox
+      Left = 12
+      Top = 24
+      Width = 67
+      Height = 20
+      Caption = 'Enable'
+      Checked = True
+      State = cbChecked
+      TabOrder = 3
+      OnClick = sChBoxMoveFileClick
+      ImgChecked = 0
+      ImgUnchecked = 0
+    end
   end
   object sSkinManager: TsSkinManager
     Effects.AllowAnimation = False
@@ -2105,6 +2222,7 @@ object FrmMain: TFrmMain
           AEEBB2076C1C4CD0D47FA1B4A9885B402584E0EB5BA87A395154E311FE13874E
           F1C204FEF69782CEF297000300D18BCF405A4583F60000000049454E44AE4260
           82}
+        OriginName = ''
       end
       item
         Name = 'Deep (internal)'
@@ -7639,6 +7757,7 @@ object FrmMain: TFrmMain
           571E8E669A766C367B1379B0E51FA30B62EAA9E0228A7AE476C4A420F014FFEB
           471052F63083FFC1259F95691685195E55FE81A5ECF99D4FA3CEA7A9FC578001
           002B46CEFFBB3FD07E0000000049454E44AE426082}
+        OriginName = ''
       end
       item
         Name = 'Graphite (internal)'
@@ -9493,6 +9612,7 @@ object FrmMain: TFrmMain
           FBD822FF7518AFFBA69C8BEB0E2F30B9D0FEB066D6398A7140D218981316FAB7
           2EFC931D4085BAC3843672096FB49B77510053E5E9AE296E24DB563548C53FCD
           A1FC4F8001000535B2E0E042D8140000000049454E44AE426082}
+        OriginName = ''
       end
       item
         Name = 'Matrix (internal)'
@@ -12475,6 +12595,7 @@ object FrmMain: TFrmMain
           AEBF1981778B9BEB28DC173149DA47B8FD56836EAF3D6A0814895E8467568033
           D7B8D9CF8B4580FF56B6CCB664C404BCAF6CBF5C1F7FF421582F50581B8F2F28
           7DF13F010600425D9CFCD512C2CA0000000049454E44AE426082}
+        OriginName = ''
       end
       item
         Name = 'Terminal4bit (internal)'
@@ -12807,6 +12928,7 @@ object FrmMain: TFrmMain
           3B267BE56A186787D5B224B5BB00DB8D845A1EE47845C2C5FA305FEE9959D1F4
           EB82E86E34CFE0F8689A48A97F04180041B4A584FC9762570000000049454E44
           AE426082}
+        OriginName = ''
       end
       item
         Name = 'NeonNight (internal)'
@@ -15904,6 +16026,7 @@ object FrmMain: TFrmMain
           AEB68C65494C2BDFD4267903DF5828BEB578097C0F26F0E385CFACC5ADBF50FA
           7DCB0F168A142C06641BDF52FCC56265E968A5E9E31D99E6C18A152729CBD955
           B395FE27C00006AD386E290AC5E10000000049454E44AE426082}
+        OriginName = ''
       end
       item
         Name = 'WMP11 (internal)'
@@ -17046,6 +17169,7 @@ object FrmMain: TFrmMain
           DBB18DE348F2D1F2B0F6D11AB2D61A0EEBD7A1E3A36566AABA3E997DF667CBBC
           FA8F0CD30CD2F607ABC5D6C52676A7659F8E9B0592F1876EB371B444E85F0106
           0024A5234C8B89D9400000000049454E44AE426082}
+        OriginName = ''
       end
       item
         Name = 'WMP 2008 (internal)'
@@ -20722,6 +20846,7 @@ object FrmMain: TFrmMain
           956ECBA0F30118D7EFD4653EA910C9E26A05F588C9CC9C505AFB9F1BE016C314
           C31D358EA18F2B2CEFFF0A3000CC20FFE41C7650590000000049454E44AE4260
           82}
+        OriginName = ''
       end
       item
         Name = 'Black Box (internal)'
@@ -23238,6 +23363,7 @@ object FrmMain: TFrmMain
           3A0D74AEA2E91C9304D6C0D9E8A0172B87C10C68EC4C2753C4301AE6385060ED
           51EFF8E3A08C7A9A8F8014B1E8151917D7B1AADDCB497AE798F2BBC7BC3DF385
           F06D72977DB397FAFF27C000792865FCD91B2B2D0000000049454E44AE426082}
+        OriginName = ''
       end
       item
         Name = 'Cold (internal)'
@@ -24592,6 +24718,7 @@ object FrmMain: TFrmMain
           C57FB92C91A0EEF8798991BF3EF20A4A48EB22CA8D08FE09336F0EBC1E1D1498
           DB923915BF2E956D6986F9436F0CF6E6DEFAEF61A0F16BCFF07F020C00EB0DA6
           4AB382091C0000000049454E44AE426082}
+        OriginName = ''
       end
       item
         Name = 'DarkMetro (internal)'
@@ -27102,6 +27229,7 @@ object FrmMain: TFrmMain
           0D0E0C5B71C97C551BF1BDF6E846FF6DDE292CE20C1E673E1FA29DEE14E9374A
           1AE7B28D6E5AD441FC6A67D17F020C0099ACF33CD4D757E50000000049454E44
           AE426082}
+        OriginName = ''
       end
       item
         Name = 'AutumnSky (internal)'
@@ -30705,6 +30833,7 @@ object FrmMain: TFrmMain
           9F23C8E8C5616FEF0330EE73305FA103983BD1A4ECCD13FD86099004FD96EAA9
           AB60DC3F0EC63E04B3FDB90824D38F82F6B18EA1EBDFFA73FC8F0003005566A6
           4680FB84D70000000049454E44AE426082}
+        OriginName = ''
       end
       item
         Name = 'Notes Sport (internal)'
@@ -35524,6 +35653,7 @@ object FrmMain: TFrmMain
           65E14D5FA98988A976D4F0FF41D05B633DBDD9DEA4FF5448FFD032EDDF3EA5FF
           5988FF9315D2230A604344D49200D5F4FF2C2DFDF746FB3F010600BB2AD1056A
           C864DA0000000049454E44AE426082}
+        OriginName = ''
       end
       item
         Name = 'Nautilus (internal)'
@@ -38956,6 +39086,7 @@ object FrmMain: TFrmMain
           8C5B6B2BBEE00C33E02A16D1BF6C952D56E7DCF04B3091FFD189FC6D3EBA5A8E
           8069A47530BA11232FE88B149FF5C0BC616C69F436D0FF4F800100E784934BE7
           6EE9350000000049454E44AE426082}
+        OriginName = ''
       end>
     SkinDirectory = 'C:\PROJECT+\COMPONENTS\AlphaSkins\Skins'
     SkinName = 'Material Dark (internal)'
@@ -39041,25 +39172,36 @@ object FrmMain: TFrmMain
   object PopMenu: TPopupMenu
     Left = 308
     Top = 388
-    object PM_ClearLVItems: TMenuItem
-      Caption = 'Clear Task List'
-      OnClick = PM_ClearLVItemsClick
+    object PM_TaskClaer: TMenuItem
+      Action = Act_TaskClear
     end
-    object PM_ImportFromBatFile: TMenuItem
-      Caption = 'Import from *.bat file'
-      OnClick = PM_ImportFromBatFileClick
+    object PM_TaskEdit: TMenuItem
+      Action = Act_TaskEdit
     end
-    object PM_LoadTaskListFromFileOLD: TMenuItem
-      Caption = 'Load Task List from old file'
-      OnClick = PM_LoadTaskListFromFileOLDClick
+    object PM_TaskSplit: TMenuItem
+      Action = Act_TaskSplit
+      Caption = 'Task Split'
     end
-    object PM_ChangeSettings: TMenuItem
-      Caption = 'Change Task List CommandLine'
-      OnClick = PM_ChangeSettingsClick
+    object PM_Split2: TMenuItem
+      Caption = '-'
     end
-    object PM_SplitTask: TMenuItem
-      Caption = 'To split a Task List'
-      OnClick = PM_SplitTaskClick
+    object PM_TimeResultClear: TMenuItem
+      Action = Act_ClearResults
+    end
+    object PM_Spit1: TMenuItem
+      Caption = '-'
+    end
+    object PM_CheckBoxAllUP: TMenuItem
+      Action = Act_ItemsCheckedAll
+    end
+    object PM_CheckBoxAllDown: TMenuItem
+      Action = Act_ItemsUnCheckedAll
+    end
+    object PM_ItemsSelectedCheck: TMenuItem
+      Action = Act_ItemsSelectedChecked
+    end
+    object PM_ItemsSelectedUnCheck: TMenuItem
+      Action = Act_ItemsSelectedUnChecked
     end
   end
   object OpenDlg: TOpenDialog
@@ -39068,7 +39210,7 @@ object FrmMain: TFrmMain
     Top = 384
   end
   object sOpenDlgLastNonce: TsOpenDialog
-    Left = 560
+    Left = 568
     Top = 392
   end
   object ImgListLV: TImageList
@@ -39077,7 +39219,7 @@ object FrmMain: TFrmMain
     Left = 648
     Top = 388
     Bitmap = {
-      494C010101003000880010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C010101003000F80010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       000000000000F1F5F600EBF2F400D3E3E700E4ECEE00EFF3F500F6F9F9000000
@@ -39221,5 +39363,160 @@ object FrmMain: TFrmMain
     OnTimer = TimerLoadTaskListTimer
     Left = 720
     Top = 392
+  end
+  object PopMenuASkin: TPopupMenu
+    Left = 448
+    Top = 384
+    object PM_ASkinSelectDir: TMenuItem
+      Caption = 'Specify a directory with skins'
+      OnClick = PM_ASkinSelectDirClick
+    end
+  end
+  object TmrHideLVItems: TTimer
+    Enabled = False
+    Interval = 50
+    OnTimer = TmrHideLVItemsTimer
+    Left = 808
+    Top = 392
+  end
+  object MainMenu: TMainMenu
+    Left = 320
+    Top = 328
+    object MM_Files: TMenuItem
+      Caption = 'File'
+      object PM_CreateNewTaskList: TMenuItem
+        Action = Act_CreateNewTaskList
+        Caption = 'Create new Task'
+      end
+      object MM_OpenTaskList: TMenuItem
+        Action = Act_OpenTaskList
+      end
+      object PM_AddPlots: TMenuItem
+        Action = Act_AddPlots
+      end
+      object PM_ExportToBatFile: TMenuItem
+        Action = Act_ExportToBatFile
+        Caption = 'Export to *.bat file'
+      end
+      object MM_TaskClose: TMenuItem
+        Action = Act_TaskClose
+      end
+      object MM_Split: TMenuItem
+        Caption = '-'
+      end
+      object MM_Exit: TMenuItem
+        Action = Act_Exit
+      end
+    end
+    object MM_Actions: TMenuItem
+      Caption = 'Actions'
+      object MM_Start: TMenuItem
+        Action = Act_Start
+        Caption = 'Start'
+      end
+      object MM_Stop: TMenuItem
+        Action = Act_Stop
+        Caption = 'Stop'
+      end
+      object MM_Slite: TMenuItem
+        Caption = '-'
+      end
+      object MM_TaskEdit: TMenuItem
+        Action = Act_TaskEdit
+      end
+      object MM_Audit: TMenuItem
+        Action = Act_OpenAudit
+      end
+    end
+    object MM_Settings: TMenuItem
+      Caption = 'Settings'
+      object MM_AutoRun: TMenuItem
+        AutoCheck = True
+        Caption = 'Windows AuroRun / Autostart'
+        OnClick = MM_AutoRunClick
+      end
+      object PM_OpenSettings: TMenuItem
+        Caption = 'Open Settings'
+        OnClick = PM_OpenSettingsClick
+      end
+      object MM_ShowDebugsInfo: TMenuItem
+        AutoCheck = True
+        Caption = 'Show debugs info'
+        OnClick = MM_ShowDebugsInfoClick
+      end
+      object MM_ToAddTimeResults: TMenuItem
+        AutoCheck = True
+        Caption = 'To add time results'
+        Checked = True
+      end
+    end
+  end
+  object ActionList: TActionList
+    Left = 384
+    Top = 328
+    object Act_OpenTaskList: TAction
+      Caption = 'Open Task List'
+      OnExecute = Act_OpenTaskListExecute
+    end
+    object Act_ExportToBatFile: TAction
+      OnExecute = Act_ExportToBatFileExecute
+    end
+    object Act_OpenAudit: TAction
+      Caption = 'Open Audit'
+      OnExecute = Act_OpenAuditExecute
+    end
+    object Act_Exit: TAction
+      Caption = 'Exit'
+      OnExecute = Act_ExitExecute
+    end
+    object Act_AddPlots: TAction
+      Caption = 'Add Plots'
+      OnExecute = Act_AddPlotsExecute
+    end
+    object Act_CreateNewTaskList: TAction
+      OnExecute = Act_CreateNewTaskListExecute
+    end
+    object Act_Start: TAction
+      OnExecute = Act_StartExecute
+    end
+    object Act_Stop: TAction
+      OnExecute = Act_StopExecute
+    end
+    object Act_ItemsUnCheckedAll: TAction
+      Caption = 'UnCheck all items'
+      OnExecute = Act_ItemsUnCheckedAllExecute
+    end
+    object Act_ItemsCheckedAll: TAction
+      Caption = 'Check all items'
+      OnExecute = Act_ItemsCheckedAllExecute
+    end
+    object Act_ItemsSelectedChecked: TAction
+      Caption = 'Check selected items '
+      OnExecute = Act_ItemsSelectedCheckedExecute
+    end
+    object Act_ItemsSelectedUnChecked: TAction
+      Caption = 'UnCheck selected items '
+      OnExecute = Act_ItemsSelectedUnCheckedExecute
+    end
+    object Act_TaskEdit: TAction
+      Caption = 'Edit Task'
+      OnExecute = Act_TaskEditExecute
+    end
+    object Act_TaskClear: TAction
+      Caption = 'Task clear'
+      OnExecute = Act_TaskClearExecute
+    end
+    object Act_TaskClose: TAction
+      Caption = 'Close Task'
+      OnExecute = Act_TaskCloseExecute
+    end
+    object Act_TaskSplit: TAction
+      Caption = 'Act_TaskSplit'
+      OnExecute = Act_TaskSplitExecute
+    end
+    object Act_ClearResults: TAction
+      Caption = 'Clear result information'
+      OnExecute = Act_ClearResultsExecute
+    end
   end
 end

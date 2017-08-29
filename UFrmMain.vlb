@@ -25,35 +25,17 @@ Coordinates=589,350,67,58
 [sLblFXDonate]
 Coordinates=232,146,96,58
 
-[sChBoxReWrite]
-Coordinates=506,418,106,36
-
-[sChBoxMoveFile]
-Coordinates=385,418,111,36
-
-[sLblDestDir]
-Coordinates=404,10,81,58
-
 [sWebLblDonatBurst]
 Coordinates=106,282,129,58
 
 [sSaveDlg]
 Coordinates=771,558,69,36
 
-[sSkinSelector1]
-Coordinates=275,418,100,36
-
 [sLblFXDonateBTC]
 Coordinates=628,214,121,58
 
 [sSkinProvider]
 Coordinates=1043,111,94,36
-
-[sDirEditDest]
-Coordinates=10,282,86,58
-
-[sLblCPUNameStr]
-Coordinates=666,350,115,58
 
 [sLV]
 Coordinates=77,418,40,36
@@ -63,14 +45,14 @@ Visible=True
 Coordinates=1043,276,133,36
 
 []
-Coordinates=638,146,84,58
-
-[PM_ImportFromBatFile]
-Coordinates=1043,166,120,36
+Coordinates=385,418,111,36
 
 [sBtnNewTask]
 Coordinates=85,146,137,58
 
-[PM_ClearLVItems]
+[sLblCPU]
+Coordinates=666,350,115,58
+
+[PM_TaskClaer]
 Coordinates=1043,56,107,36
 

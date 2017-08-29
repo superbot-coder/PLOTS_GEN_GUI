@@ -27,8 +27,8 @@ object FrmCreateTask: TFrmCreateTask
     Caption = 'Select Disk:'
   end
   object sLblPath: TsLabel
-    Left = 189
-    Top = 69
+    Left = 192
+    Top = 66
     Width = 30
     Height = 16
     Caption = 'Path:'
@@ -286,7 +286,7 @@ object FrmCreateTask: TFrmCreateTask
     TabOrder = 6
     Text = '1'
     OnChange = sSpEdCountChange
-    MaxValue = 100000
+    MaxValue = 10000
     MinValue = 1
     Value = 1
   end
@@ -371,6 +371,16 @@ object FrmCreateTask: TFrmCreateTask
     MaxLength = 28
     ParentFont = False
     TabOrder = 11
+  end
+  object sChBoxPoc2: TsCheckBox
+    Left = 92
+    Top = 147
+    Width = 64
+    Height = 20
+    Caption = 'POC 2'
+    TabOrder = 12
+    ImgChecked = 0
+    ImgUnchecked = 0
   end
   object sSkinProvider: TsSkinProvider
     SkinData.SkinSection = 'FORM'

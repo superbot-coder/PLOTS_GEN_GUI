@@ -9,7 +9,9 @@ uses
   UFrmSplitTask in 'UFrmSplitTask.pas' {FrmSplitTask},
   ResourceLang in 'ResourceLang.pas',
   UFrmProgressBar in 'UFrmProgressBar.pas' {FrmProgressBar},
-  UFrmProgressBarMoveFile in 'UFrmProgressBarMoveFile.pas' {FrmProgressBarMoveFile};
+  UFrmProgressBarMoveFile in 'UFrmProgressBarMoveFile.pas' {FrmProgressBarMoveFile},
+  UFrmAudit in 'UFrmAudit.pas' {FrmAudit},
+  UFrmSettings in 'UFrmSettings.pas' {FrmSettings};
 
 {$R *.res}
 
@@ -23,5 +25,7 @@ begin
   Application.CreateForm(TFrmSplitTask, FrmSplitTask);
   Application.CreateForm(TFrmProgressBar, FrmProgressBar);
   Application.CreateForm(TFrmProgressBarMoveFile, FrmProgressBarMoveFile);
+  Application.CreateForm(TFrmAudit, FrmAudit);
+  Application.CreateForm(TFrmSettings, FrmSettings);
   Application.Run;
 end.

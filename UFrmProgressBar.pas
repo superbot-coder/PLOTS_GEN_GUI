@@ -16,6 +16,7 @@ type
     sLblInfo: TsLabel;
     procedure StartShow(Lbl: TLableMode; MaxValue: Integer);
     procedure ProgressNext(ProgressValue: Int64);
+    procedure StopClose;
   private
     { Private declarations }
     LableMode: TLableMode;
@@ -46,15 +47,15 @@ begin
   sProgBar.Position := Percent;
 
   case LableMode of
-    lmAdding:   lbl := lbl_FrmProgresBar_1;
-    lmSaving:   lbl := lbl_FrmProgresBar_2;
-    lmLoading:  lbl := lbl_FrmProgresBar_3;
-    lmDeleting: lbl := lbl_FrmProgresBar_4;
-    lmChanging: lbl := lbl_FrmProgresBar_5;
+    lmAdding:   lbl := strGUIVal[lbl_FrmProgresBar_1];
+    lmSaving:   lbl := strGUIVal[lbl_FrmProgresBar_2];
+    lmLoading:  lbl := strGUIVal[lbl_FrmProgresBar_3];
+    lmDeleting: lbl := strGUIVal[lbl_FrmProgresBar_4];
+    lmChanging: lbl := strGUIVal[lbl_FrmProgresBar_5];
   end;
 
   sLblInfo.Caption  := lbl + '  ' + IntToStr(ProgressValue) + '     '
-                      + IntToStr(Percent) + '%' + '     ' + lbl_FrmProgresBar_6 + ' '
+                      + IntToStr(Percent) + '%' + '     ' + strGUIVal[lbl_FrmProgresBar_6] + ' '
                       + GetMilisecondsFormat(GetTickCount - BgnTime, TS_MINUTE, TS_Alfa);
 end;
 
@@ -66,6 +67,16 @@ begin
   sProgBar.Position      := 0;
   sProgBar.Max           := 100;
   Show;
+end;
+
+procedure TFrmProgressBar.StopClose;
+begin
+  if Not Visible then Exit;
+  //if FrmMain.WindowState = wsMinimized then
+  FrmMain.WindowState := wsNormal;
+  Application.ProcessMessages;
+  Sleep(SLEEP_VISIBLE);
+  Close;
 end;
 
 end.

@@ -3,7 +3,7 @@ object FrmSelPlotter: TFrmSelPlotter
   Top = 0
   BorderStyle = bsToolWindow
   Caption = 'Select Plotter'
-  ClientHeight = 131
+  ClientHeight = 140
   ClientWidth = 276
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -16,18 +16,18 @@ object FrmSelPlotter: TFrmSelPlotter
   PixelsPerInch = 96
   TextHeight = 16
   object sRdBtnXPlotter_sse: TsRadioButton
-    Left = 48
-    Top = 24
+    Left = 62
+    Top = 12
     Width = 124
-    Height = 22
+    Height = 20
     Caption = 'XPlotter_sse.exe'
     TabOrder = 0
   end
   object sRdBtnXPlotter_avx: TsRadioButton
-    Left = 48
-    Top = 52
+    Left = 62
+    Top = 38
     Width = 124
-    Height = 22
+    Height = 20
     Caption = 'XPlotter_avx.exe'
     TabOrder = 1
   end
@@ -39,6 +39,14 @@ object FrmSelPlotter: TFrmSelPlotter
     Caption = 'OK'
     TabOrder = 2
     OnClick = sBtnOkClick
+  end
+  object sRdBtnXPlotter_avx2: TsRadioButton
+    Left = 62
+    Top = 64
+    Width = 131
+    Height = 20
+    Caption = 'XPlotter_avx2.exe'
+    TabOrder = 3
   end
   object sSkinProvider: TsSkinProvider
     SkinData.SkinSection = 'FORM'

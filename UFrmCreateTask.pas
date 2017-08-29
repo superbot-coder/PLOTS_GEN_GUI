@@ -46,6 +46,7 @@ type
     sEdNewNameTask: TsEdit;
     sLblNameTask: TsLabel;
     sLblMaxCount: TsLabel;
+    sChBoxPoc2: TsCheckBox;
     procedure sBtnAPPLYClick(Sender: TObject);
     procedure CheckFreeSpace;
     function ConvertValueMem: string;
@@ -119,11 +120,11 @@ begin
 
   sSpEdThreads.Value := MaxCore;
 
-  sLblGlobalMem.Caption := 'Global Memory: ' +  FormatFileSize(MemTotalPhys);
+  sLblGlobalMem.Caption := strGUIVal[FrmCreateTask_sLblGlobalMem] + ' ' +  FormatFileSize(MemTotalPhys);
   sSpEdMem.Value := MaxCore * 500;
   sCmBoxExSelectDisk.ItemIndex := sCmBoxExSelectDisk.Items.IndexOf(CurrentDisk+'\');
   sLblStatDisk.Caption := IntToStr(CURRENT_DISK_FREE_SZ) +
-                          ' GB free space [' +CurrentDisk + '\]';
+                          ' ' + strGUIVal[FrmCreateTask_sLblStatDisk] + ' ' + ' [' +CurrentDisk + '\]';
 
   sSpEdMemChange(Nil);
   GetCurrentDiskSpace;
@@ -139,8 +140,12 @@ begin
   GetDiskFreeSpaceEx(PChar(ExtractFileDrive(CurrPath)), Free_Bytes, TotalSize, @FreeSize);
   CURRENT_DISK_FREE_SZ := (FreeSize div 1024 div 1024 div 1024);
 
-  sLblCurrDiskSpace.Caption := 'Current disk [' + CurrentDisk + '\] '
-       + 'Total space: ' + FormatFileSize(TotalSize) + ', Free space: ' +  FormatFileSize(FreeSize);
+  sLblCurrDiskSpace.Caption := strGUIVal[FrmCreateTask_sLblCurrDiskSpace_01]
+                               + ' [' + CurrentDisk + '\] '
+                               + strGUIVal[FrmCreateTask_sLblCurrDiskSpace_02]
+                               + ' ' + FormatFileSize(TotalSize)
+                               + ', ' + strGUIVal[FrmCreateTask_sLblCurrDiskSpace_03] + ' '
+                               +  FormatFileSize(FreeSize);
 end;
 
 function TFrmCreateTask.GetNextNonceFromName(PlotsName: String): String;
@@ -175,20 +180,23 @@ begin
   GetDiskFreeSpaceEx(PChar(sCmBoxExSelectDisk.Text), Free_Bytes, TotalSize, @FreeSize);
   SELECT_DISK_FREE_SZ := (FreeSize div 1024 div 1024 div 1024);
 
-  sLblSelectDiskSpace.Caption := 'Selected disk [' + sCmBoxExSelectDisk.Text + ']'
-       + ' Total space: ' + FormatFileSize(TotalSize) + '; Free space: ' + FormatFileSize(FreeSize);
+  sLblSelectDiskSpace.Caption := strGUIVal[FrmCreateTask_sLblSelectDiskSpace_01]
+                                 + ' [' + sCmBoxExSelectDisk.Text + ']'
+                                 + ' ' + strGUIVal[FrmCreateTask_sLblCurrDiskSpace_02]
+                                 + ' ' + FormatFileSize(TotalSize)
+                                 + '; ' + strGUIVal[FrmCreateTask_sLblCurrDiskSpace_03]
+                                 + ' ' + FormatFileSize(FreeSize);
 
   if sChBoxPathEnable.Checked then
-  sLblStatDisk.Caption :=  IntToStr(SELECT_DISK_FREE_SZ) +
-                         ' GB free space [' + sCmBoxExSelectDisk.Text + ']';
+  sLblStatDisk.Caption :=  IntToStr(SELECT_DISK_FREE_SZ)
+                          + ' ' + strGUIVal[FrmCreateTask_sLblStatDisk]
+                          + ' [' + sCmBoxExSelectDisk.Text + ']';
 end;
 
 procedure TFrmCreateTask.LoadeSettings;
 Var INI : TIniFile;
 begin
-
   INI := TIniFile.Create(CurrPath + 'config.ini');
-
   try
     FrmCreateTask.sEdPath.Text := INI.ReadString('SETTINGS', 'Path','');
     FrmCreateTask.sEdID.Text   := INI.ReadString('SETTINGS', 'id','');
@@ -196,43 +204,41 @@ begin
   finally
     INI.Free;
   end;
-
 end;
 
 procedure TFrmCreateTask.CheckFreeSpace;
 begin
-     if sChBoxPathEnable.Checked then
-     begin
-       if SELECT_DISK_FREE_SZ <> 0 then
-         if SELECT_DISK_FREE_SZ < (sSpEdCount.Value * (sSpEdNonces.Value div NONCE)) then
-         begin
-           sLblPlotsSumGb.Visible := false;
-           JvOverflowed.Caption   := sLblPlotsSumGb.Caption + ' > ';
-           JvOverflowed.Visible   := true;
-         end
-           else
-         begin
-           JvOverflowed.Visible := false;
-           JvOverflowed.Caption := '';
-           sLblPlotsSumGb.Visible := true;
-         end;
-     end
-       else
-     begin
-       if CURRENT_DISK_FREE_SZ < (sSpEdCount.Value * (sSpEdNonces.Value div NONCE)) then
-       begin
-         sLblPlotsSumGb.Visible := false;
-         JvOverflowed.Caption   := sLblPlotsSumGb.Caption + ' > ';
-         JvOverflowed.Visible   := true;
-       end
-         else
-       begin
-         JvOverflowed.Visible := false;
-         JvOverflowed.Caption := '';
-         sLblPlotsSumGb.Visible := true;
-       end;
-     end;
-
+  if sChBoxPathEnable.Checked then
+  begin
+    if SELECT_DISK_FREE_SZ <> 0 then
+      if SELECT_DISK_FREE_SZ < (sSpEdCount.Value * (sSpEdNonces.Value div NONCE)) then
+      begin
+        sLblPlotsSumGb.Visible := false;
+        JvOverflowed.Caption   := sLblPlotsSumGb.Caption + ' > ';
+        JvOverflowed.Visible   := true;
+      end
+        else
+      begin
+        JvOverflowed.Visible := false;
+        JvOverflowed.Caption := '';
+        sLblPlotsSumGb.Visible := true;
+      end;
+  end
+    else
+  begin
+    if CURRENT_DISK_FREE_SZ < (sSpEdCount.Value * (sSpEdNonces.Value div NONCE)) then
+    begin
+      sLblPlotsSumGb.Visible := false;
+      JvOverflowed.Caption   := sLblPlotsSumGb.Caption + ' > ';
+      JvOverflowed.Visible   := true;
+    end
+      else
+    begin
+      JvOverflowed.Visible := false;
+      JvOverflowed.Caption := '';
+      sLblPlotsSumGb.Visible := true;
+    end;
+  end;
 end;
 
 procedure TFrmCreateTask.sBtnAPPLYClick(Sender: TObject);
@@ -254,14 +260,14 @@ begin
   // Check ID
   if Not CheckInsertChar(Trim(sEdID.Text)) then
   begin
-    MessageBox(Handle, PChar(msg_FrmCreateTask_sBtmApply_02), PChar(MB_CAPTION), MB_ICONWARNING);
+    MessageBox(Handle, PChar(strGUIVal[msg_FrmCreateTask_sBtmApply_02]), PChar(MB_CAPTION), MB_ICONWARNING);
     Exit;
   end;
 
   // Check Nonce
     if Not CheckInsertChar(Trim(sEdStartNonce.Text)) then
   begin
-    MessageBox(Handle, PChar(msg_FrmCreateTask_sBtmApply_03), PChar(MB_CAPTION), MB_ICONWARNING);
+    MessageBox(Handle, PChar(strGUIVal[msg_FrmCreateTask_sBtmApply_03]), PChar(MB_CAPTION), MB_ICONWARNING);
     Exit;
   end;
 
@@ -284,6 +290,7 @@ var
   Drive: Char;
   index: ShortInt;
 begin
+  sCmBoxExSelectDisk.Items.Clear;
   for Drive := 'C' to 'Z' do
   begin
 
@@ -323,11 +330,13 @@ begin
   if sChBoxPathEnable.Checked then
   begin
     sLblStatDisk.Caption :=  IntToStr(SELECT_DISK_FREE_SZ) +
-                         ' GB free space [' + sCmBoxExSelectDisk.Text + ']'
+                         ' ' + strGUIVal[FrmCreateTask_sLblStatDisk]
+                         + ' [' + sCmBoxExSelectDisk.Text + ']'
   end
   else
     sLblStatDisk.Caption :=  IntToStr(CURRENT_DISK_FREE_SZ) +
-                         ' GB free space [' + CurrentDisk + '\]';
+                         ' ' + strGUIVal[FrmCreateTask_sLblStatDisk]
+                         + ' [' + CurrentDisk + '\]';
 end;
 
 procedure TFrmCreateTask.sCmBoxExSelectDiskChange(Sender: TObject);
@@ -430,8 +439,8 @@ begin
 end;
 
 procedure TFrmCreateTask.sSpEdNoncesChange(Sender: TObject);
+var gigabytes: Integer;
 begin
-
  if sSpEdNonces.Value = NONCE then
  begin
    if NonceDirection < NONCE then
@@ -450,12 +459,14 @@ begin
  end
    else
  begin
-   sLblGB.Caption         :=  '= ' + IntToStr(sSpEdNonces.Value div NONCE) + ' Gb';
-   //sSpEdCount.MaxValue    :=  NONCE div (sSpEdNonces.Value div NONCE);
-   sLblPlotsSumGb.Caption := '= ' + IntToStr((sSpEdNonces.Value div NONCE) * sSpEdCount.Value) + ' Gb';
+   gigabytes := (sSpEdNonces.Value div NONCE);
+   if sSpEdNonces.Value <> (gigabytes * NONCE) then
+     sSpEdNonces.Value := gigabytes * NONCE;
+
+   sLblGB.Caption         :=  '= ' + IntToStr(gigabytes) + ' Gb';
+   sLblPlotsSumGb.Caption := '= ' + IntToStr(gigabytes * sSpEdCount.Value) + ' Gb';
  end;
  CheckFreeSpace;
-
 end;
 
 procedure TFrmCreateTask.sSpEdThreadsChange(Sender: TObject);

@@ -4,8 +4,8 @@ object FrmProgressBar: TFrmProgressBar
   BorderIcons = []
   BorderStyle = bsDialog
   Caption = 'PLOTS_GEN_GUI'
-  ClientHeight = 69
-  ClientWidth = 458
+  ClientHeight = 72
+  ClientWidth = 455
   Color = clMedGray
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -19,7 +19,7 @@ object FrmProgressBar: TFrmProgressBar
   TextHeight = 16
   object sLblInfo: TsLabel
     Left = 8
-    Top = 17
+    Top = 12
     Width = 71
     Height = 16
     Caption = 'Information:'

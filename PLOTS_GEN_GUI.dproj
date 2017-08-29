@@ -5,7 +5,7 @@
         <FrameworkType>VCL</FrameworkType>
         <MainSource>PLOTS_GEN_GUI.dpr</MainSource>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Release</Config>
+        <Config Condition="'$(Config)'==''">Debug</Config>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Application</AppType>
@@ -94,6 +94,14 @@
         <DCC_RemoteDebug>true</DCC_RemoteDebug>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
+        <Icon_MainIcon>Icon\MAINICON.ico</Icon_MainIcon>
+        <VerInfo_Debug>true</VerInfo_Debug>
+        <VerInfo_Release>1</VerInfo_Release>
+        <VerInfo_Locale>1033</VerInfo_Locale>
+        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.1.16;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Build>16</VerInfo_Build>
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
         <AppEnableHighDPI>true</AppEnableHighDPI>
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
@@ -109,17 +117,16 @@
         <DCC_DebugInformation>0</DCC_DebugInformation>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
-        <VerInfo_Build>1</VerInfo_Build>
+        <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
+        <VerInfo_Build>16</VerInfo_Build>
         <VerInfo_Release>1</VerInfo_Release>
         <VerInfo_MajorVer>2</VerInfo_MajorVer>
-        <VerInfo_PreRelease>true</VerInfo_PreRelease>
         <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
-        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=2.0.1.1;InternalName=;LegalCopyright=SUPERBOT;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=2.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=2.0.1.16;InternalName=;LegalCopyright=SUPERBOT;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=2.0.0.0;Comments=</VerInfo_Keys>
         <VerInfo_Debug>true</VerInfo_Debug>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <Icon_MainIcon>Icon\MAINICON.ico</Icon_MainIcon>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
-        <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
         <AppEnableHighDPI>true</AppEnableHighDPI>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
@@ -157,6 +164,14 @@
         </DCCReference>
         <DCCReference Include="UFrmProgressBarMoveFile.pas">
             <Form>FrmProgressBarMoveFile</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="UFrmAudit.pas">
+            <Form>FrmAudit</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="UFrmSettings.pas">
+            <Form>FrmSettings</Form>
             <FormType>dfm</FormType>
         </DCCReference>
         <BuildConfiguration Include="Release">

@@ -13,6 +13,7 @@ type
     sRdBtnXPlotter_sse: TsRadioButton;
     sRdBtnXPlotter_avx: TsRadioButton;
     sBtnOk: TsButton;
+    sRdBtnXPlotter_avx2: TsRadioButton;
     procedure sBtnOkClick(Sender: TObject);
   private
     { Private declarations }

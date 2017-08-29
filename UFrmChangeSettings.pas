@@ -59,7 +59,7 @@ end;
 
 procedure TFrmChengeSettings.sBtnApplyClick(Sender: TObject);
 begin
-  if sChBoxPathEnable.Enabled then
+  if sChBoxPathEnable.Checked then
     if sDirEdPath.Text = '' then
     begin
       MessageBox(Handle, PChar(msg_FrmChengeSettings_01), PChar(MB_CAPTION), MB_ICONWARNING);
