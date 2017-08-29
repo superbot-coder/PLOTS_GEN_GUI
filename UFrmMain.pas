@@ -11,16 +11,20 @@ uses
   sDialogs, Vcl.Menus, sStatusBar, acTitleBar, System.IniFiles, cpu_info_xe,
   sCheckBox, JvExControls, JvLabel, Vcl.FileCtrl, acProgressBar, ModFileFormatSize,
   Error, sListView, Compress, GetVer, System.RegularExpressions, Winapi.ShellApi,
-  System.win.registry, Vcl.ExtCtrls, TimeFormat;
+  System.win.registry, Vcl.ExtCtrls, TimeFormat, StrUtils;
 
 type TExitCode = (EX_COMPLETE, EX_STOPED, EX_CLOCE, EX_FILED, EX_UNKNOWN);
 type TMoveResult = (MR_COMPLETE, MR_STOPED, MR_ERROR, MR_NOTFOUND);
 type TPlotter   = (XPlotter_sse, XPlotter_avx, gpuPlotGenerator_x86, gpuPlotGenerator_x64);
+type TLockControls = (lcAll, lcStart);
+type TConfigValues = (id, Path, StartNonce, SkinName, DestDir, FileMove, ReWrite, Version, SkinDirectory, CommandList, MoveBufferSize);
 
 var
  strExitCode:  Array[TExitCode] of string = ('Complete', 'Stoped', 'Cloce', 'Filed', 'Unknown');
  strMoveResult: Array[TMoveResult] of string = ('Complete', 'Stoped', 'Error', 'Not found');
  strPlotter: Array[TPlotter] of string = ('XPlotter_sse', 'XPlotter_avx', 'gpuPlotGenerator_x86', 'gpuPlotGenerator_x64');
+ strConfigValues: Array[0..10] of String = ('id', 'Path', 'StartNonce', 'SkinName',
+                            'DestDir', 'FileMove', 'ReWrite', 'Version', 'SkinDirectory', 'CommandList', 'MoveBufferSize');
 
 type
   TFrmMain = class(TForm)
@@ -45,7 +49,7 @@ type
     sLblDestDir: TsLabel;
     sChBoxReWrite: TsCheckBox;
     sDirEditDest: TsDirectoryEdit;
-    sSkinSelector1: TsSkinSelector;
+    sSkinSelector: TsSkinSelector;
     sOpenDlgLastNonce: TsOpenDialog;
     sLV: TsListView;
     ImgListLV: TImageList;
@@ -59,6 +63,8 @@ type
     PM_SplitTask: TMenuItem;
     sChBoxAutorun: TsCheckBox;
     TimerLoadTaskList: TTimer;
+    PopMenuASkin: TPopupMenu;
+    PM_ASkinSelectDir: TMenuItem;
     function AddAssociatedIcon(FileName: String; ImageList: TImageList): Integer;
     procedure sBtnSaveBatClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -70,7 +76,7 @@ type
     procedure PM_ImportFromBatFileClick(Sender: TObject);
     procedure sWbLabelClick(Sender: TObject);
     procedure SaveSettings;
-    procedure LoadeSettings;
+    procedure LoadSettings;
     procedure sSkinProviderTitleButtons0MouseDown(Sender: TObject;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure FormShow(Sender: TObject);
@@ -90,9 +96,13 @@ type
     procedure PM_SplitTaskClick(Sender: TObject);
     procedure sChBoxAutorunClick(Sender: TObject);
     Function AutoRunCheck: Boolean;
-    Procedure LockControls;
+    Procedure LockControls(LockType: TLockControls);
     Procedure UnLockControls;
     procedure TimerLoadTaskListTimer(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure PM_ASkinSelectDirClick(Sender: TObject);
+    procedure ReConfig;
+    function CValue(TValue: TConfigValues): String;
 
   private
     { Private declarations }
@@ -119,6 +129,7 @@ var
   LastTimeProcessing   : Cardinal;
   CurrentTaskName      : String;
   AutoRunCheckPass     : Boolean;
+  MOVE_BUFFER_SIZE     : Integer;
 
   msg_TaskName         : String;
   msg_TaskFile         : String;
@@ -126,7 +137,9 @@ var
 const
   NONCE         = 4096;
   REC_RANGE     = 100;
-  CommandList   = 'CommandList'; //'CreatePlotsLog.txt';
+  SLEEP_VISIBLE = 2000;
+  DEFAUT_BUFFER = 1048576;       // 1MB
+  SETTINGS      = 'SETTINGS';    // Section SETTINGS Config.ini
   MB_CAPTION    = 'PLOTS_GEN_GUI';
   RegKeyAutoRun = '\Software\Microsoft\Windows\CurrentVersion\Run';
   char_not_permitted = '[\\/:\*\?"<>\s]';   //   \/:*?"<>|;
@@ -226,21 +239,16 @@ begin
 
   for i := 1 to FrmCreateTask.sSpEdCount.Value do
   begin
-    if (i mod 50) = 0 then Application.ProcessMessages;
-    if FrmCreateTask.sSpEdCount.Value > REC_RANGE then
-      //if (i mod 10) = 0 then
-    FrmProgressBar.ProgressNext(i); //
-    //SendMessage(FrmProgressBar.Handle, WM_COPYDATA, i, 0);
-    //AddLVItem(s1 + IntToStr(sn) + s2);
+    if (i mod 10) = 0 then Application.ProcessMessages;
+    if FrmProgressBar.Visible then FrmProgressBar.ProgressNext(i);
+    AddLVItem(s1 + IntToStr(sn) + s2);
     inc(sn, FrmCreateTask.sSpEdNonces.Value);
   end;
 
-  if FrmCreateTask.sSpEdCount.Value > REC_RANGE then
-    FrmProgressBar.ProgressNext(i);
-    //SendMessage(FrmProgressBar.Handle, WM_COPYDATA, i, 0);
   sLV.Items.EndUpdate;
-  FrmProgressBar.Hide;
+  sLV.Refresh;
   FrmCreateTask.sEdStartNonce.Text := IntToStr(sn);
+  FrmProgressBar.StopClose;
 
 end;
 
@@ -275,51 +283,62 @@ begin
 
   FrmProgressBarMoveFile.sLblMoveFile.Caption := lbl_FrmProgressBarMoveFile_Movefile + ExtractFileName(FSource);
   FrmProgressBarMoveFile.sLblFileSize.Caption := lbl_FrmProgressBarMoveFile_FileSize + FormatFileSize(FileSize);
+  WindowState := wsNormal;
   FrmProgressBarMoveFile.Show;
 
-
-  BufferSize := 1024 * 1024 * 4; // new parametr 4 MB, îld parametr 10mb
-  GetMem(PBuffer, BufferSize);
-
   try
+    // Range: Buffer >= 1MB and Buffer <= 50MB
+    if (MOVE_BUFFER_SIZE > 1) and (MOVE_BUFFER_SIZE <= 50) then
+      BufferSize := DEFAUT_BUFFER * MOVE_BUFFER_SIZE
+    else
+      BufferSize := DEFAUT_BUFFER; //Default Buffer 1 MB, îld parametr 4MB, 10mb
+
+    GetMem(PBuffer, BufferSize);
+
+    Count := 0;
     repeat
       if TERMINATE_PROCESS then
       begin
         BreakeMove := true;
         Break;
       end;
+
+      //if (count mod 10) = 0 then
+      //begin
+         //Count := 0;
+         //Application.ProcessMessages;
+      //end;
+
       Application.ProcessMessages;
       ByteRead := FStrmSource.Read(PBuffer^, BufferSize);
       Application.ProcessMessages;
       FStrmDest.Write(PBuffer^, ByteRead);
       ByteAmount := ByteAmount + ByteRead;
-      if Count > 10 then
-      begin
 
-        FrmProgressBarMoveFile.sLblAmount.Caption    := lbl_FrmProgressBarMoveFile_Amount + FormatFileSize(ByteAmount);
-        FrmProgressBarMoveFile.sLblSpeed.Caption     := lbl_FrmProgressBarMoveFile_Speed + FormatFileSize(ByteAmount / ((GetTickCount - BeginTime) / 1000)) + '/s';
-        FrmProgressBarMoveFile.sProgressBar.Position := Trunc((ByteAmount * 100) / FileSize);
+      FrmProgressBarMoveFile.sLblAmount.Caption    := lbl_FrmProgressBarMoveFile_Amount + FormatFileSize(ByteAmount);
+      FrmProgressBarMoveFile.sLblSpeed.Caption     := lbl_FrmProgressBarMoveFile_Speed + FormatFileSize(ByteAmount / ((GetTickCount - BeginTime) / 1000)) + '/s';
+      FrmProgressBarMoveFile.sProgressBar.Position := Trunc((ByteAmount * 100) / FileSize);
+      FrmProgressBarMoveFile.sLblTime.Caption      := 'Passed time: ' + GetMilisecondsFormat((GetTickCount - BeginTime), TS_HOUR, TS_Alfa) + ' / ' +
+                         'Expected time: ' + GetMilisecondsFormat((((GetTickCount - BeginTime) * FileSize) div ByteAmount) , TS_HOUR, TS_Alfa);
 
-        count := 1;
-      end;
-      Inc(Count);
+      //inc(Count);
+
     until ByteRead < BufferSize;
-
-    FrmProgressBarMoveFile.sLblAmount.Caption    := lbl_FrmProgressBarMoveFile_Amount + FormatFileSize(ByteAmount);
-    FrmProgressBarMoveFile.sLblSpeed.Caption     := lbl_FrmProgressBarMoveFile_Speed + FormatFileSize(ByteAmount / ((GetTickCount - BeginTime) / 1000)) + '/s';
-    FrmProgressBarMoveFile.sProgressBar.Position := Trunc((ByteAmount * 100) / FileSize);
-
-    Application.ProcessMessages;
 
     if Not BreakeMove then Result := true;
 
   finally
-    FrmProgressBarMoveFile.Close;
     FreeMem(PBuffer);
     FStrmSource.Free;
     FStrmDest.Free;
+    FrmProgressBarMoveFile.StopClose;
   end;
 
+end;
+
+function TFrmMain.CValue(TValue: TConfigValues): String;
+begin
+  Result := strConfigValues[Integer(TConfigValues(TValue))];
 end;
 
 function TFrmMain.ExtractParam(Param, StrValue: AnsiString): AnsiString;
@@ -394,6 +413,11 @@ begin
   end;
 end;
 
+procedure TFrmMain.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+   TERMINATE_PROCESS := True;
+end;
+
 procedure TFrmMain.FormCreate(Sender: TObject);
 var
   suport: string;
@@ -407,6 +431,7 @@ begin
 
   CurrPath    := ExtractFilePath(Application.ExeName);
   CurrentDisk := ExtractFileDrive(Application.ExeName);
+  sSkinManager.SkinDirectory := CurrPath + 'Skins';
 
   // CPU Instructions detect
   if IsCPUIDSuported then
@@ -448,38 +473,28 @@ begin
   end;
 
   XPlotterFile := CurrPath + strPlotter[typePlotter]+'.exe';
-  LoadeSettings;
+
+  ReConfig;
+
+  LoadSettings;
 
   if CurrentTaskList <> '' then
   begin
     if ExtractFileDir(CurrentTaskList) = '' then
     CurrentTaskList := CurrPath + CurrentTaskList;
-    if FileExists(CurrentTaskList) then
-    begin
-      //LVLoadTaskListFromFile(CurrentTaskList);
-      GetProcessingInformation;
-      sLblTaskFileName.Caption := 'Task File: ' + ExtractFileName(CurrentTaskList);
-    end;
+
   end;
 
   Caption := Caption + '  v. ' + Get_vertionInfo(Application.ExeName, True);
-
- // if AutoRunCheck = true then
- // begin
- //   AutoRunCheckPass      := true;
- //   sChBoxAutorun.Checked := true;
- //   sBtnStartClick(Nil);
- // end;
 
 end;
 
 procedure TFrmMain.FormShow(Sender: TObject);
 begin
-  //smm.SetFocus;
   sLV.SetFocus;
 end;
 
-procedure TFrmMain.LoadeSettings;
+procedure TFrmMain.LoadSettings;
 Var INI : TIniFile;
 begin
 
@@ -490,28 +505,41 @@ begin
     begin
       // .......
     end;
-    sDirEditDest.Text      := INI.ReadString('SETTINGS', 'DestDir', '');
-    sChBoxMoveFile.Checked := INI.ReadBool('SETTINGS', 'FileMove', false);
-    sChBoxReWrite.Checked  := INI.ReadBool('SETTINGS', 'ReWrite', false);
-    CurrentTaskList        := INI.ReadString('SETTINGS', CommandList, '');
-    sSkinManager.SkinName  := INI.ReadString('SETTINGS', 'SkinName', 'Material Dark (internal)');
+    sDirEditDest.Text          := INI.ReadString('SETTINGS', 'DestDir', '');
+    sChBoxMoveFile.Checked     := INI.ReadBool('SETTINGS', 'FileMove', false);
+    sChBoxReWrite.Checked      := INI.ReadBool('SETTINGS', 'ReWrite', false);
+    CurrentTaskList            := INI.ReadString('SETTINGS', 'CommandList', '');
+    sSkinManager.SkinDirectory := INI.ReadString('SETTINGS', 'SkinDirectory', '');
+    sSkinManager.SkinName      := INI.ReadString('SETTINGS', 'SkinName', 'Material Dark (internal)');
+    MOVE_BUFFER_SIZE           := INI.ReadInteger('SETTINGS', 'MoveBufferSize',0);
   finally
     INI.Free;
   end;
 
 end;
 
-procedure TFrmMain.LockControls;
+procedure TFrmMain.LockControls(LockType: TLockControls);
 begin
+  case LockType of
+    lcAll:
+      begin
+        sBtnStart.Enabled     := False;
+        sBtnSaveBat.Enabled   := False;
+        sBtnStop.Enabled      := False;
+        sDirEditDest.Enabled  := False;
+        sChBoxAutorun.Enabled := False;
+      end;
+  end;
   sLV.HideSelection                  := False;
-  sBtnStart.Enabled                  := false;
-  sBtnNewTask.Enabled                := false;
-  sBtnAddPlots.Enabled               := false;
-  PM_ClearLVItems.Enabled            := false;
-  PM_ImportFromBatFile.Enabled       := false;
-  PM_LoadTaskListFromFileOLD.Enabled := false;
-  PM_ChangeSettings.Enabled          := false;
-  PM_SplitTask.Enabled               := false;
+  sBtnStart.Enabled                  := False;
+  sBtnNewTask.Enabled                := False;
+  sBtnAddPlots.Enabled               := False;
+
+  PM_ClearLVItems.Visible            := False;
+  PM_ImportFromBatFile.Visible       := False;
+  PM_LoadTaskListFromFileOLD.Visible := False;
+  PM_ChangeSettings.Visible          := False;
+  PM_SplitTask.Visible               := False;
 end;
 
 procedure TFrmMain.LVLoadTaskListFromFile(FileName: String);
@@ -527,14 +555,13 @@ begin
     INI.ReadSections(st);
     if st.Count = 0 then exit;
 
+    if st.Count > REC_RANGE then FrmProgressBar.StartShow(lmLoading, st.Count-1);
+
     sLV.Items.BeginUpdate;
-
-    if st.Count > REC_RANGE then FrmProgressBar.StartShow(lmLoading, st.Count);
-
     for i:=0 to st.Count - 1 do
     begin
       if (i mod 10) = 0 then Application.ProcessMessages;
-      if st.Count > REC_RANGE then FrmProgressBar.ProgressNext(i);
+      if FrmProgressBar.Visible then FrmProgressBar.ProgressNext(i);
 
       if st.Strings[i] = 'INFO' then
       begin
@@ -555,17 +582,15 @@ begin
       end;
 
     end;
-
-    //if st.Count > REC_RANGE then FrmProgressBar.ProgressNext(i); //SendMessage(FrmProgressBar.Handle, WM_COPYDATA, i, 0);
     sLV.Items.EndUpdate;
-    Application.ProcessMessages;
-    sleep(500);
-    FrmProgressBar.Hide;
+    sLV.Refresh;
 
   finally
     INI.Free;
     st.Free;
+    FrmProgressBar.StopClose;
   end;
+
 end;
 
 procedure TFrmMain.LVSaveTaskListToFile(FileName: String);
@@ -579,22 +604,20 @@ begin
   try
     INI.WriteString('INFO','TaskName', CurrentTaskName);
 
-    if sLV.Items.Count > REC_RANGE then FrmProgressBar.StartShow(lmSaving, sLV.Items.Count);
+    if sLV.Items.Count > REC_RANGE then FrmProgressBar.StartShow(lmSaving, sLV.Items.Count -1);
 
     for i := 0 to sLV.Items.Count - 1 do
     begin
       if (i mod 10) = 0 then Application.ProcessMessages;
-      if sLV.Items.Count > REC_RANGE then FrmProgressBar.ProgressNext(i);
+      if FrmProgressBar.Visible then FrmProgressBar.ProgressNext(i);
       Section := ExtractParam('-id', sLV.Items[i].Caption) + '_' + ExtractParam('-sn', sLV.Items[i].Caption);
       INI.WriteString(Section, 'Command', sLV.Items[i].Caption);
       INI.WriteBool(Section, 'Checked', sLV.Items[i].Checked);
     end;
-    Application.ProcessMessages;
-    sleep(500);
-    FrmProgressBar.Hide;
 
   finally
     INI.Free;
+    FrmProgressBar.StopClose;
   end;
 end;
 
@@ -608,23 +631,44 @@ begin
     if st.Count = 0 then exit;
 
     if st.Count > REC_RANGE then
-      FrmProgressBar.StartShow(lmLoading, st.Count);
+      FrmProgressBar.StartShow(lmLoading, st.Count-1);
 
     sLV.Items.BeginUpdate;
     for i := 0 to st.Count - 1 do
     begin
       if (i mod 10) = 0 then Application.ProcessMessages;
-      if st.Count > REC_RANGE then FrmProgressBar.ProgressNext(i);
+      if FrmProgressBar.Visible then FrmProgressBar.ProgressNext(i);
       AddLVItem(st.Strings[i]);
     end;
     sLV.Items.EndUpdate;
-    Application.ProcessMessages;
-    sleep(500);
-    FrmProgressBar.Hide;
+    sLV.Refresh;
 
   finally
     st.free;
+    FrmProgressBar.StopClose;
   end;
+
+end;
+
+procedure TFrmMain.PM_ASkinSelectDirClick(Sender: TObject);
+var INI: TIniFile;
+  Options: TSelectDirExtOpts;
+  ChosenDirectory: String;
+begin
+
+  Options := [sdShowShares, sdNewUI];
+  if Not SelectDirectory(pm_ASkinSelectDir_SelDir,'',ChosenDirectory, Options, Nil) then Exit;
+  if ChosenDirectory = '' then Exit;
+
+  sSkinManager.SkinDirectory := ChosenDirectory;
+
+  INI := TIniFile.Create(CurrPath + 'config.ini');
+  try
+    INI.WriteString('SETTINGS','SkinDirectory', ChosenDirectory);
+  finally
+    INI.Free;
+  end;
+
 end;
 
 procedure TFrmMain.PM_ChangeSettingsClick(Sender: TObject);
@@ -653,8 +697,10 @@ begin
    Apply := false;
    ShowModal;
 
+   LockControls(lcAll);
+
    if sLV.Items.Count > REC_RANGE then
-     FrmProgressBar.StartShow(lmChanging, sLV.Items.Count);
+     FrmProgressBar.StartShow(lmChanging, sLV.Items.Count-1);
 
    sLV.Items.BeginUpdate;
    if sRdBtnAllItems.Checked then
@@ -662,7 +708,7 @@ begin
      for i := 0 to sLV.Items.Count -1 do
      begin
        if (i mod 10) = 0 then Application.ProcessMessages;
-       if sLV.Items.Count > REC_RANGE then FrmProgressBar.ProgressNext(i);
+       if FrmProgressBar.Visible then FrmProgressBar.ProgressNext(i);
 
       // Old metod
       //s_temp := '%Plotter%';
@@ -687,7 +733,7 @@ begin
        if sLV.Items[i].Selected then
        begin
          if (i mod 10) = 0 then Application.ProcessMessages;
-         if sLV.Items.Count > REC_RANGE then FrmProgressBar.ProgressNext(i);
+         if FrmProgressBar.Visible then FrmProgressBar.ProgressNext(i);
 
          s_temp := '-n ' + ExtractParam('-n', sLV.Items[i].Caption);
          s_temp := Copy(sLV.Items[i].Caption, 1 ,
@@ -699,14 +745,14 @@ begin
        end;
      end;
    end;
-   sLV.Items.EndUpdate;
-   Application.ProcessMessages;
-   sleep(500);
-   FrmProgressBar.Hide;
 
+   sLV.Items.EndUpdate;
+   slv.Refresh;
+   FrmProgressBar.StopClose;
   end;
 
   LVSaveTaskListToFile(CurrentTaskList);
+  UnLockControls;
 
 end;
 
@@ -719,6 +765,7 @@ begin
   if MessageBox(Handle, PChar(msg_FrmMain_ClearTaskList),PChar(MB_CAPTION),
                 MB_ICONWARNING or MB_YESNO) = ID_NO then Exit;
 
+  LockControls(lcAll);
   INI := TIniFile.Create(CurrentTaskList);
   st  := TStringList.Create;
 
@@ -730,7 +777,7 @@ begin
     for i := 0 to st.Count -1 do
     begin
       if (i mod 10) = 0 Then Application.ProcessMessages;
-      if st.Count > REC_RANGE then FrmProgressBar.ProgressNext(i);
+      if FrmProgressBar.Visible then FrmProgressBar.ProgressNext(i);
 
       if st.Strings[i] = 'INFO' then continue;
       INI.EraseSection(st.Strings[i]);
@@ -740,11 +787,11 @@ begin
   finally
     st.Free;
     INI.Free;
+    UnLockControls;
   end;
 
   sLV.Clear;
-  sleep(500);
-  FrmProgressBar.Hide;
+  FrmProgressBar.StopClose;
 
 end;
 
@@ -756,15 +803,16 @@ begin
   if Not OpenDlg.Execute then Exit;
 
   sLV.Clear;
+  LockControls(lcAll);
   LVLoadTaskListFromFile(OpenDlg.FileName);
   CurrentTaskList := OpenDlg.FileName;
   INI := TIniFile.Create(CurrPath + 'config.ini');
   try
-    INI.WriteString('SETTINGS', CommandList, CurrentTaskList);
+    INI.WriteString(SETTINGS, CValue(CommandList), CurrentTaskList);
   finally
     INI.free;
   end;
-
+  UnLockControls;
 end;
 
 procedure TFrmMain.PM_SplitTaskClick(Sender: TObject);
@@ -833,6 +881,46 @@ begin
   end;
 end;
 
+procedure TFrmMain.ReConfig;
+var st: TStrings;
+     i: Integer;
+begin
+  INI := TIniFile.Create(CurrPath + 'config.ini');
+  try
+    st := TStringList.Create;
+    INI.ReadSections(st);
+    if st.Count = 0 then Exit;
+
+    // Delete Old Sections
+    INI.EraseSection('');
+    for i := 0 to st.Count-1 do
+       if st.Strings[i] <> SETTINGS then INI.EraseSection(st.Strings[i]);
+
+    st.Clear;
+
+    INI.ReadSectionValues(SETTINGS, st);
+    if st.Count = 0 then Exit;
+
+    // Deletr Old Key
+    for i := 0  to st.Count -1 do
+    begin
+      st.Strings[i] := Copy(st.Strings[i], 1, AnsiPos('=', st.Strings[i])-1);
+      if Not AnsiMatchStr(st.Strings[i], strConfigValues) then INI.DeleteKey(SETTINGS, st.Strings[i]);
+    end;
+
+    // Add Vertion
+    INI.WriteString(SETTINGS, CValue(Version), Get_vertionInfo(Application.ExeName, True));
+
+    // ADD new Key;
+    if Not INI.ValueExists(SETTINGS, CValue(MoveBufferSize)) then
+      INI.WriteInteger(SETTINGS, CValue(MoveBufferSize), 0);
+
+  finally
+    st.Free;
+    INI.Free;
+  end;
+end;
+
 function TFrmMain.RemoveSpace(StrValue: AnsiString): AnsiString;
 var
  Maxlen: Integer;
@@ -872,12 +960,12 @@ begin
   if Not OpenDlg.Execute then Exit;
   LVLoadTaskListFromFileOld(OpenDlg.FileName);
 
-  CurrentTaskList :=  CurrPath + CommandList + '_' + FormatDateTime('dd.mm.yyyy_hh.mm.ss', Date+Time) + '.txt';
+  CurrentTaskList :=  CurrPath + CValue(CommandList) + '_' + FormatDateTime('dd.mm.yyyy_hh.mm.ss', Date+Time) + '.txt';
   LVSaveTaskListToFile(CurrentTaskList);
 
   INI := TIniFile.Create(CurrPath + 'config.ini');
   try
-    INI.WriteString('SETTINGS', CommandList, CurrentTaskList);
+    INI.WriteString(SETTINGS, CValue(CommandList), CurrentTaskList);
   finally
     INI.Free;
   end;
@@ -890,14 +978,14 @@ begin
   INI := TIniFile.Create(CurrPath + 'config.ini');
 
   try
-    INI.WriteString('SETTINGS', 'Version', Get_vertionInfo(Application.ExeName, True));
-    INI.WriteString('SETTINGS', 'id', FrmCreateTask.sEdID.Text);
-    INI.WriteString('SETTINGS', 'Path', FrmCreateTask.sEdPath.Text);
-    INI.WriteString('SETTINGS', 'StartNonce', FrmCreateTask.sEdStartNonce.Text);
-    INI.WriteString('SETTINGS', 'DestDir', sDirEditDest.Text);
-    INI.WriteBool('SETTINGS', 'FileMove', sChBoxMoveFile.Checked);
-    INI.WriteBool('SETTINGS', 'ReWrite', sChBoxReWrite.Checked);
-    INI.WriteString('SETTINGS', CommandList, CurrentTaskList);
+    INI.WriteString(SETTINGS, 'Version', Get_vertionInfo(Application.ExeName, True));
+    INI.WriteString(SETTINGS, 'id', FrmCreateTask.sEdID.Text);
+    INI.WriteString(SETTINGS, 'Path', FrmCreateTask.sEdPath.Text);
+    INI.WriteString(SETTINGS, 'StartNonce', FrmCreateTask.sEdStartNonce.Text);
+    INI.WriteString(SETTINGS, 'DestDir', sDirEditDest.Text);
+    INI.WriteBool(SETTINGS, 'FileMove', sChBoxMoveFile.Checked);
+    INI.WriteBool(SETTINGS, 'ReWrite', sChBoxReWrite.Checked);
+    INI.WriteString(SETTINGS, CValue(CommandList), CurrentTaskList);
   finally
     INI.Free;
   end;
@@ -930,8 +1018,8 @@ begin
   if FrmSelPlotter.sRdBtnXPlotter_avx.Checked then
     st.Add('set Plotter=' + strPlotter[XPlotter_avx]+'.exe')
   else st.Add('set Plotter=' + strPlotter[XPlotter_sse]+'.exe');
-  if (FrmCreateTask.sCmBoxExSelectDisk.Text <> '') and (FrmCreateTask.sEdPath.Text <> '') then
-    st.Add('mkdir ' + FrmCreateTask.sCmBoxExSelectDisk.Text + FrmCreateTask.sEdPath.Text);
+  //if (FrmCreateTask.sCmBoxExSelectDisk.Text <> '') and (FrmCreateTask.sEdPath.Text <> '') then
+  //  st.Add('mkdir ' + FrmCreateTask.sCmBoxExSelectDisk.Text + FrmCreateTask.sEdPath.Text);
 
   try
     for i := 0 to sLV.Items.Count - 1 do
@@ -959,8 +1047,9 @@ begin
     ShowModal;
     if Not Apply then Exit;
   end;
-
+  LockControls(lcAll);
   AddItemsToTaskList;
+  UnLockControls;
   LVSaveTaskListToFile(CurrentTaskList);
   GetProcessingInformation;
   SaveSettings;
@@ -990,25 +1079,24 @@ begin
   sLblTaskName.Caption     := 'Task name: ' + CurrentTaskName;
   sLblTaskFileName.Caption := 'Task File: ' + ExtractFileName(CurrentTaskList);
   GetProcessingInformation;
-
-  //LVSaveTaskListToFile(CurrentTaskList);
-
+  LVSaveTaskListToFile(CurrentTaskList);
   SaveSettings;
 end;
 
 procedure TFrmMain.sBtnStartClick(Sender: TObject);
 var
-    SR: TSearchRec;
-    FindDir: String;
-    SourceDir: String;
-    INI: TIniFile;
-    i, j: integer;
-    FindPlot: Boolean;
-    ProcExitCode: Cardinal;
-    CommandLine : String;
-    SectionName: String;
-    MoveResult: TMoveResult;
-    BeginTime : Cardinal;
+    SR           : TSearchRec;
+    FindDir      : String;
+    SourcePath   : String;
+    MovePlot     : String;
+    INI          : TIniFile;
+    i, j         : integer;
+    FindPlot     : Boolean;
+    ProcExitCode : Cardinal;
+    CommandLine  : String;
+    SectionName  : String;
+    MoveResult   : TMoveResult;
+    BeginTime    : Cardinal;
 
 begin
 
@@ -1040,7 +1128,7 @@ begin
     INI.WriteBool(SectionName, 'Checked', sLV.Items[i].Checked);
   end;   }
 
-  LockControls;
+  LockControls(lcStart);
 
   try
 
@@ -1120,11 +1208,12 @@ begin
       begin
 
         FindPlot  := false;
-        SourceDir := ExtractParam('-path', sLV.Items[i].Caption);
-        if SourceDir = '' then SourceDir := ExtractFileDir(XPlotterFile);
-        SourceDir := IncludeTrailingPathDelimiter(SourceDir);
+        SourcePath := ExtractParam('-path', sLV.Items[i].Caption);
+        if SourcePath = '' then SourcePath := ExtractFileDir(XPlotterFile);
+        SourcePath := IncludeTrailingPathDelimiter(SourcePath);
 
-        if FindFirst(SourceDir + '*.*', faAnyFile, SR) = 0 then
+        // ******************** Find file *****************************
+        if FindFirst(SourcePath + '*.*', faAnyFile, SR) = 0 then
         Repeat
           Application.ProcessMessages;
           if TERMINATE_PROCESS then
@@ -1132,52 +1221,55 @@ begin
             MoveResult := MR_STOPED;
             Break;
           end;
+
           if ((SR.Attr and faDirectory) <> 0) or (SR.Name = '.') or (SR.Name = '..') then Continue;
 
           if (AnsiPos(SectionName, SR.Name) <> 0) then
           begin
-            FindPlot := true;
-            // sLblFileInfo.Caption := 'File to move: ' + SR.Name;
+            FindPlot  := true;
+            MovePlot  := SR.Name;
+            Break;
+          end;
 
-            if FileExists(sDirEditDest.Text + '\' + SR.Name) and (sChBoxReWrite.Checked = false) then
-              Continue;
+        until (FindNext(SR) <> 0);
+        FindClose(SR);
 
-            if ExtractFileDrive(SourceDir) = ExtractFileDrive(sDirEditDest.Text) then
+        // **************************** Move **************************
+        if FindPlot then
+        begin
+          if Not (FileExists(sDirEditDest.Text + '\' + MovePlot) and (sChBoxReWrite.Checked = false)) then
+          begin
+            if ExtractFileDrive(SourcePath) = ExtractFileDrive(sDirEditDest.Text) then
             begin
-              if MoveFile(PChar(SourceDir + SR.Name), PChar(sDirEditDest.Text + '\' + SR.Name)) then
+              if MoveFile(PChar(SourcePath + SR.Name), PChar(sDirEditDest.Text + '\' + SR.Name)) then
                 MoveResult := MR_COMPLETE
               else
                 MoveResult := MR_ERROR;
             end
-              else
+            else
             begin
               try
-                if CopyFileStrmProgress(SourceDir + SR.Name,
-                              sDirEditDest.Text + '\' + SR.Name) then
+                if CopyFileStrmProgress(SourcePath + MovePlot,
+                              sDirEditDest.Text + '\' + MovePlot) then
                 begin
                   Application.ProcessMessages;
-                    DeleteFile(SourceDir + SR.Name);
+                  DeleteFile(SourcePath + MovePlot);
                   MoveResult := MR_COMPLETE;
                 end
-                 else
+                else
                 begin
-                  if FileExists(sDirEditDest.Text + '\' + SR.Name) then
-                    DeleteFile(sDirEditDest.Text + '\' + SR.Name);
-                   if TERMINATE_PROCESS then MoveResult := MR_STOPED;
+                  if FileExists(sDirEditDest.Text + '\' + MovePlot) then
+                    DeleteFile(sDirEditDest.Text + '\' + MovePlot);
+                  if TERMINATE_PROCESS then MoveResult := MR_STOPED;
                 end;
-
               except
                 MoveResult := MR_ERROR;
                 ShowMessage(Error.SystemErrorMessage(GetLastError));
               end;
             end;
-
-            Break;
-
           end;
+        end;
 
-        until (FindNext(SR) <> 0);
-        FindClose(SR);
         if (NOT FindPlot) and (NOT TERMINATE_PROCESS) then MoveResult := MR_NOTFOUND;
 
         sLV.Items[i].SubItems[2] := strMoveResult[MoveResult];
@@ -1192,6 +1284,7 @@ begin
   end;
 
   UnLockControls;
+  sBtnStart.SetFocus;
 
 end;
 
@@ -1199,6 +1292,7 @@ procedure TFrmMain.sBtnStopClick(Sender: TObject);
 begin
   TERMINATE_PROCESS := true;
 end;
+
 
 procedure TFrmMain.sChBoxAutorunClick(Sender: TObject);
 var Reg: Tregistry;
@@ -1319,7 +1413,15 @@ end;
 procedure TFrmMain.TimerLoadTaskListTimer(Sender: TObject);
 begin
   TimerLoadTaskList.Enabled := false;
-  LVLoadTaskListFromFile(CurrentTaskList);
+
+  if FileExists(CurrentTaskList) then
+  begin
+    sLblTaskFileName.Caption := 'Task File: ' + ExtractFileName(CurrentTaskList);
+    LockControls(lcAll);
+    LVLoadTaskListFromFile(CurrentTaskList);
+    UnLockControls;
+  end;
+
   GetProcessingInformation;
 
   if AutoRunCheck = true then
@@ -1329,18 +1431,29 @@ begin
     sBtnStartClick(Nil);
   end;
 
+  if slv.Items.Count = 0 then sBtnNewTask.SetFocus
+  else sBtnStart.SetFocus;
+
 end;
 
 procedure TFrmMain.UnLockControls;
 begin
-  sBtnStart.Enabled                  := true;
-  sBtnNewTask.Enabled                := true;
-  sBtnAddPlots.Enabled               := True;;
-  PM_ClearLVItems.Enabled            := true;
-  PM_ImportFromBatFile.Enabled       := true;
-  PM_LoadTaskListFromFileOLD.Enabled := true;
-  PM_ChangeSettings.Enabled          := true;
-  PM_SplitTask.Enabled               := true;
+
+  sBtnStop.Enabled                   := True;
+  sBtnStart.Enabled                  := True;
+  sBtnSaveBat.Enabled                := True;
+  sBtnStart.Enabled                  := True;
+  sBtnNewTask.Enabled                := True;
+  sBtnAddPlots.Enabled               := True;
+  sDirEditDest.Enabled               := True;
+  sChBoxAutorun.Enabled              := True;
+
+  PM_ClearLVItems.Visible            := True;
+  PM_ImportFromBatFile.Visible       := True;
+  PM_LoadTaskListFromFileOLD.Visible := True;
+  PM_ChangeSettings.Visible          := True;
+  PM_SplitTask.Visible               := True;
+
 end;
 
 end.

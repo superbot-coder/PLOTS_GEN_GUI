@@ -12,6 +12,7 @@ object FrmMain: TFrmMain
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
+  OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
@@ -227,11 +228,11 @@ object FrmMain: TFrmMain
     TabOrder = 7
     Text = ''
     CheckOnExit = True
-    GlyphMode.Blend = 0
     GlyphMode.Grayed = False
+    GlyphMode.Blend = 0
     Root = 'rfMyComputer'
   end
-  object sSkinSelector1: TsSkinSelector
+  object sSkinSelector: TsSkinSelector
     Left = 864
     Top = 8
     Width = 181
@@ -243,6 +244,7 @@ object FrmMain: TFrmMain
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
+    PopupMenu = PopMenuASkin
     TabOrder = 8
   end
   object sLV: TsListView
@@ -2105,6 +2107,7 @@ object FrmMain: TFrmMain
           AEEBB2076C1C4CD0D47FA1B4A9885B402584E0EB5BA87A395154E311FE13874E
           F1C204FEF69782CEF297000300D18BCF405A4583F60000000049454E44AE4260
           82}
+        OriginName = ''
       end
       item
         Name = 'Deep (internal)'
@@ -7639,6 +7642,7 @@ object FrmMain: TFrmMain
           571E8E669A766C367B1379B0E51FA30B62EAA9E0228A7AE476C4A420F014FFEB
           471052F63083FFC1259F95691685195E55FE81A5ECF99D4FA3CEA7A9FC578001
           002B46CEFFBB3FD07E0000000049454E44AE426082}
+        OriginName = ''
       end
       item
         Name = 'Graphite (internal)'
@@ -9493,6 +9497,7 @@ object FrmMain: TFrmMain
           FBD822FF7518AFFBA69C8BEB0E2F30B9D0FEB066D6398A7140D218981316FAB7
           2EFC931D4085BAC3843672096FB49B77510053E5E9AE296E24DB563548C53FCD
           A1FC4F8001000535B2E0E042D8140000000049454E44AE426082}
+        OriginName = ''
       end
       item
         Name = 'Matrix (internal)'
@@ -12475,6 +12480,7 @@ object FrmMain: TFrmMain
           AEBF1981778B9BEB28DC173149DA47B8FD56836EAF3D6A0814895E8467568033
           D7B8D9CF8B4580FF56B6CCB664C404BCAF6CBF5C1F7FF421582F50581B8F2F28
           7DF13F010600425D9CFCD512C2CA0000000049454E44AE426082}
+        OriginName = ''
       end
       item
         Name = 'Terminal4bit (internal)'
@@ -12807,6 +12813,7 @@ object FrmMain: TFrmMain
           3B267BE56A186787D5B224B5BB00DB8D845A1EE47845C2C5FA305FEE9959D1F4
           EB82E86E34CFE0F8689A48A97F04180041B4A584FC9762570000000049454E44
           AE426082}
+        OriginName = ''
       end
       item
         Name = 'NeonNight (internal)'
@@ -15904,6 +15911,7 @@ object FrmMain: TFrmMain
           AEB68C65494C2BDFD4267903DF5828BEB578097C0F26F0E385CFACC5ADBF50FA
           7DCB0F168A142C06641BDF52FCC56265E968A5E9E31D99E6C18A152729CBD955
           B395FE27C00006AD386E290AC5E10000000049454E44AE426082}
+        OriginName = ''
       end
       item
         Name = 'WMP11 (internal)'
@@ -17046,6 +17054,7 @@ object FrmMain: TFrmMain
           DBB18DE348F2D1F2B0F6D11AB2D61A0EEBD7A1E3A36566AABA3E997DF667CBBC
           FA8F0CD30CD2F607ABC5D6C52676A7659F8E9B0592F1876EB371B444E85F0106
           0024A5234C8B89D9400000000049454E44AE426082}
+        OriginName = ''
       end
       item
         Name = 'WMP 2008 (internal)'
@@ -20722,6 +20731,7 @@ object FrmMain: TFrmMain
           956ECBA0F30118D7EFD4653EA910C9E26A05F588C9CC9C505AFB9F1BE016C314
           C31D358EA18F2B2CEFFF0A3000CC20FFE41C7650590000000049454E44AE4260
           82}
+        OriginName = ''
       end
       item
         Name = 'Black Box (internal)'
@@ -23238,6 +23248,7 @@ object FrmMain: TFrmMain
           3A0D74AEA2E91C9304D6C0D9E8A0172B87C10C68EC4C2753C4301AE6385060ED
           51EFF8E3A08C7A9A8F8014B1E8151917D7B1AADDCB497AE798F2BBC7BC3DF385
           F06D72977DB397FAFF27C000792865FCD91B2B2D0000000049454E44AE426082}
+        OriginName = ''
       end
       item
         Name = 'Cold (internal)'
@@ -24592,6 +24603,7 @@ object FrmMain: TFrmMain
           C57FB92C91A0EEF8798991BF3EF20A4A48EB22CA8D08FE09336F0EBC1E1D1498
           DB923915BF2E956D6986F9436F0CF6E6DEFAEF61A0F16BCFF07F020C00EB0DA6
           4AB382091C0000000049454E44AE426082}
+        OriginName = ''
       end
       item
         Name = 'DarkMetro (internal)'
@@ -27102,6 +27114,7 @@ object FrmMain: TFrmMain
           0D0E0C5B71C97C551BF1BDF6E846FF6DDE292CE20C1E673E1FA29DEE14E9374A
           1AE7B28D6E5AD441FC6A67D17F020C0099ACF33CD4D757E50000000049454E44
           AE426082}
+        OriginName = ''
       end
       item
         Name = 'AutumnSky (internal)'
@@ -30705,6 +30718,7 @@ object FrmMain: TFrmMain
           9F23C8E8C5616FEF0330EE73305FA103983BD1A4ECCD13FD86099004FD96EAA9
           AB60DC3F0EC63E04B3FDB90824D38F82F6B18EA1EBDFFA73FC8F0003005566A6
           4680FB84D70000000049454E44AE426082}
+        OriginName = ''
       end
       item
         Name = 'Notes Sport (internal)'
@@ -35524,6 +35538,7 @@ object FrmMain: TFrmMain
           65E14D5FA98988A976D4F0FF41D05B633DBDD9DEA4FF5448FFD032EDDF3EA5FF
           5988FF9315D2230A604344D49200D5F4FF2C2DFDF746FB3F010600BB2AD1056A
           C864DA0000000049454E44AE426082}
+        OriginName = ''
       end
       item
         Name = 'Nautilus (internal)'
@@ -38956,6 +38971,7 @@ object FrmMain: TFrmMain
           8C5B6B2BBEE00C33E02A16D1BF6C952D56E7DCF04B3091FFD189FC6D3EBA5A8E
           8069A47530BA11232FE88B149FF5C0BC616C69F436D0FF4F800100E784934BE7
           6EE9350000000049454E44AE426082}
+        OriginName = ''
       end>
     SkinDirectory = 'C:\PROJECT+\COMPONENTS\AlphaSkins\Skins'
     SkinName = 'Material Dark (internal)'
@@ -39077,7 +39093,7 @@ object FrmMain: TFrmMain
     Left = 648
     Top = 388
     Bitmap = {
-      494C010101003000880010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C010101003000900010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       000000000000F1F5F600EBF2F400D3E3E700E4ECEE00EFF3F500F6F9F9000000
@@ -39221,5 +39237,13 @@ object FrmMain: TFrmMain
     OnTimer = TimerLoadTaskListTimer
     Left = 720
     Top = 392
+  end
+  object PopMenuASkin: TPopupMenu
+    Left = 448
+    Top = 384
+    object PM_ASkinSelectDir: TMenuItem
+      Caption = 'Specify a directory with skins'
+      OnClick = PM_ASkinSelectDirClick
+    end
   end
 end

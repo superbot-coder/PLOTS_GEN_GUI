@@ -286,7 +286,7 @@ object FrmCreateTask: TFrmCreateTask
     TabOrder = 6
     Text = '1'
     OnChange = sSpEdCountChange
-    MaxValue = 100000
+    MaxValue = 10000
     MinValue = 1
     Value = 1
   end

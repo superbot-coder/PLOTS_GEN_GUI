@@ -40,9 +40,6 @@ Coordinates=106,282,129,58
 [sSaveDlg]
 Coordinates=771,558,69,36
 
-[sSkinSelector1]
-Coordinates=275,418,100,36
-
 [sLblFXDonateBTC]
 Coordinates=628,214,121,58
 
@@ -73,4 +70,7 @@ Coordinates=85,146,137,58
 
 [PM_ClearLVItems]
 Coordinates=1043,56,107,36
+
+[sSkinSelector]
+Coordinates=275,418,100,36
 

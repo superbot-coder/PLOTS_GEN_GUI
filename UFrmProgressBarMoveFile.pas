@@ -15,7 +15,9 @@ type
     sLblFileSize: TsLabel;
     sLblAmount: TsLabel;
     sLblSpeed: TsLabel;
+    sLblTime: TsLabel;
     procedure FormCreate(Sender: TObject);
+    procedure StopClose;
   private
     { Private declarations }
   public
@@ -36,6 +38,14 @@ USES UFrmMain;
 procedure TFrmProgressBarMoveFile.FormCreate(Sender: TObject);
 begin
   Caption := MB_CAPTION;
+end;
+
+procedure TFrmProgressBarMoveFile.StopClose;
+begin
+  FrmMain.WindowState := wsNormal;
+  Application.ProcessMessages;
+  sleep(SLEEP_VISIBLE);
+  Close;
 end;
 
 end.

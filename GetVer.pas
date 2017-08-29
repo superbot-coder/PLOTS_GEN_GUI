@@ -27,10 +27,13 @@ Begin
 
     l1:=vi.dwFileVersionMS;
     l2:=vi.dwFileVersionLS;
-    
+
     Result:=IntToStr(vs1[2])+'.'+IntToStr(vs1[1]);
-    if FullVer then Result:=Result+'.'+IntToStr(vs2[2])+'.'+IntToStr(vs2[1]); 
-  Except FreeMem(buf); end;
+    if FullVer then Result:=Result+'.'+IntToStr(vs2[2])+'.'+IntToStr(vs2[1]);
+
+  finally
+    FreeMem(buf);
+  end;
 end;
 
 end.

@@ -31,6 +31,9 @@ Var
  lbl_FrmProgressBarMoveFile_Amount   : String;
  lbl_FrmProgressBarMoveFile_Speed    : String;
 
+ // ******************** Popup Menu ***********************
+ pm_ASkinSelectDir_SelDir: String;
+
 
 
 implementation
@@ -49,7 +52,7 @@ initialization
   msg_FrmMain_AutoRunCloseOk     := 'AutoRun and Autostart is cloced successfully';
   msg_FrmMain_AutoRunCloseBad    := 'AutoRun and Autostart is not closed';
   msg_FrmMain_ClearTaskList      := 'you really are going to clean TaskLis? if yes click YES if is not present on press NO';
-  msg_FrmChengeSettings_01       := 'Paremet "-Path" is empty';
+  msg_FrmChengeSettings_01       := 'Paràmetr "-Path" is empty';
 
   lbl_FrmProgresBar_1            := 'Addition of records:';
   lbl_FrmProgresBar_2            := 'Saving records:';
@@ -62,6 +65,8 @@ initialization
   lbl_FrmProgressBarMoveFile_FileSize := 'File Size: ';
   lbl_FrmProgressBarMoveFile_Amount   := 'Amount: ';
   lbl_FrmProgressBarMoveFile_Speed    := 'Speed: ';
+
+  pm_ASkinSelectDir_SelDir            := 'Select Directory';
 
 
 end.

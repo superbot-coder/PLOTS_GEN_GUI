@@ -16,6 +16,7 @@ type
     sLblInfo: TsLabel;
     procedure StartShow(Lbl: TLableMode; MaxValue: Integer);
     procedure ProgressNext(ProgressValue: Int64);
+    procedure StopClose;
   private
     { Private declarations }
     LableMode: TLableMode;
@@ -66,6 +67,16 @@ begin
   sProgBar.Position      := 0;
   sProgBar.Max           := 100;
   Show;
+end;
+
+procedure TFrmProgressBar.StopClose;
+begin
+  if Not Visible then Exit;
+  //if FrmMain.WindowState = wsMinimized then
+  FrmMain.WindowState := wsNormal;
+  Application.ProcessMessages;
+  Sleep(SLEEP_VISIBLE);
+  Close;
 end;
 
 end.
